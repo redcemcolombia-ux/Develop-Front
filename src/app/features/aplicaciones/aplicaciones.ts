@@ -112,11 +112,11 @@ export class Aplicaciones implements OnInit, AfterViewInit {
   activeTab: string = 'whatsapp-bot';
   whatsappUrl: SafeResourceUrl;
   mensajesEnviados: number = 0;
-  private apiUrl = '${API_BASE_URL}/api/hojas-vida/bot/procesados';
+  private apiUrl = `${API_BASE_URL}/api/hojas-vida/bot/procesados`;
   private chart: Chart | null = null;
 
   constructor() {
-    this.whatsappUrl = this.sanitizer.bypassSecurityTrustResourceUrl('${API_BASE_URL}/bot/');
+    this.whatsappUrl = this.sanitizer.bypassSecurityTrustResourceUrl('https://redcemed.com/bot/');
     Chart.register(...registerables);
   }
 
