@@ -29,7 +29,7 @@ export class HojaVidaService {
   }
 
   registerBulk(hojasVida: any[]): Observable<any> {
-    return this.http.post<any>(this.registerBulkUrl, { hojas_vida: hojasVida }, { headers: this.getHeaders() });
+    return this.http.post<any>(this.registerBulkUrl, hojasVida, { headers: this.getHeaders() });
   }
 
   consultarHojasVida(): Observable<any> {
