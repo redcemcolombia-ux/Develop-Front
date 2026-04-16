@@ -9,7 +9,7 @@ import { API_BASE_URL } from '../../core/api.config';
 export class HojaVidaService {
   private baseApi = `${API_BASE_URL}/api`;
   private registerUrl = `${this.baseApi}/hojas-vida/crear`;
-  private registerBulkUrl = `${this.baseApi}/hojas-vida/crear-masivo`;
+  private registerBulkUrl = `${this.baseApi}/hojas-vida/crear`;
   private consultarUrl = `${this.baseApi}/hojas-vida/hojas-vida-full`;
   private pdfUrl = `${this.baseApi}/pdf/pdf`;
   private biometriaUrl = `${this.baseApi}/pdf/biometria`;
