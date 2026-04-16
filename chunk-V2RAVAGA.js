@@ -1,0 +1,1 @@
+import{a}from"./chunk-KRJOCSSE.js";import"./chunk-UA6J6UWO.js";import"./chunk-OKLQIEQI.js";import"./chunk-J37UDXZ6.js";import"./chunk-6OGMAMV4.js";import"./chunk-5ZAZ2XBG.js";export{a as CargaMasiva};
