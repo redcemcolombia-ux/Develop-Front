@@ -1,0 +1,61 @@
+<div class="login-container" (mousemove)="onMouseMove($event)">
+  <div class="floating-image" [style.transform]="imageTransform">
+    <img src="/assets/images/man.png" alt="" />
+  </div>
+
+  <div class="container login-container__content">
+    <div class="row justify-content-end">
+      <div class="col-12 col-md-4 col-lg-4">
+        <div class="login-form">
+          <img src="/assets/images/logow.png" alt="" class="logo" />
+
+          <form [formGroup]="form" (ngSubmit)="login()" autocomplete="on">
+            <div class="mt-3">
+              <label class="form-label" for="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                class="form-control"
+                [class.is-invalid]="form.controls.email.invalid && form.controls.email.touched"
+                formControlName="email"
+                autocomplete="email"
+                placeholder="Ingresar el correo electrónico"
+                [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
+              />
+              <div class="invalid-feedback d-block" *ngIf="form.controls.email.invalid && form.controls.email.touched">
+                El email es obligatorio.
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label" for="login-password">Contraseña</label>
+              <input
+                id="login-password"
+                type="password"
+                class="form-control"
+                [class.is-invalid]="form.controls.password.invalid && form.controls.password.touched"
+                formControlName="password"
+                autocomplete="current-password"
+                placeholder="Ingresar la contraseña"
+                [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched"
+              />
+              <div class="invalid-feedback d-block" *ngIf="form.controls.password.invalid && form.controls.password.touched">
+                La contraseña es obligatoria.
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn login-form__submit mt-4">
+                Iniciar Sesión
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="login-footer fixed-bottom">
+    <p class="mb-0 py-2">&copy; 2025 Aguisu. Todos los derechos reservados por @Aguisu.com.</p>
+  </footer>
+</div>

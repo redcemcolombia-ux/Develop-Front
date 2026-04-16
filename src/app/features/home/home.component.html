@@ -1,0 +1,229 @@
+<div
+  class="platform"
+  [class.platform--collapsed]="isAsideCollapsed()"
+  [class.platform--aside-open]="isAsideOpen()"
+>
+  <div class="platform__backdrop" (click)="onCloseAside()" aria-hidden="true"></div>
+  <app-aside
+    class="platform__aside"
+    [activePanel]="activePanel()"
+    [userName]="userName()"
+    (selectPanel)="onSelectPanel($event)"
+  ></app-aside>
+
+  <div class="platform__main">
+    <app-topbar (menuToggle)="onToggleMenu()" [displayName]="userName()" (logoutClick)="onLogout()"></app-topbar>
+
+    <main class="platform__content container-fluid">
+      <section *ngIf="activePanel() === 'dashboard'" class="row g-4">
+        <div class="col-12">
+          <div class="card platform-card">
+            <div class="card-body p-4">
+              <h2 class="platform-title mb-2">Bienvenido, {{ userName() }}</h2>
+              <div class="platform-meta">
+                <span>Perfil:</span>
+                <span class="badge bg-primary ms-1">{{ perfil() }}</span>
+                <span class="ms-2">| Empresa:</span>
+                <span class="badge bg-secondary ms-1">{{ empresa() }}</span>
+                <span class="ms-2">| Permisos:</span>
+                <span class="badge bg-info text-dark ms-1">{{ permisos() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card platform-card">
+            <div class="card-header platform-card__header platform-card__header--success">
+              <h5 class="mb-0">Estado de Sesión</h5>
+            </div>
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="platform-dot platform-dot--success"></span>
+                <span class="fw-semibold">Sesión Activa</span>
+              </div>
+              <div class="platform-kv">
+                <div>Tiempo de sesión:</div>
+                <div class="fw-semibold">{{ sessionTime() }}</div>
+              </div>
+              <div class="platform-kv mt-2">
+                <div>Autenticado como:</div>
+                <div>{{ userEmail() }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="activePanel() === 'registroUsuarios'" class="row g-4">
+        <div class="col-12">
+          <app-registro-usuarios></app-registro-usuarios>
+        </div>
+      </section>
+
+      <section *ngIf="showListadoUsuarios()" class="row g-4">
+        <div class="col-12">
+          <app-listado-usuarios (editarUsuario)="onEditarUsuario($event)"></app-listado-usuarios>
+        </div>
+      </section>
+
+      <section *ngIf="showEditarUsuario()" class="row g-4">
+        <div class="col-12">
+          <app-editar-usuario [usuario]="usuarioAEditar" (volverListado)="onVolverAListado()"></app-editar-usuario>
+        </div>
+      </section>
+
+      <section *ngIf="activePanel() === 'registroIps'" class="row g-4">
+        <div class="col-12">
+          <app-registro-ips></app-registro-ips>
+        </div>
+      </section>
+
+      <section *ngIf="activePanel() === 'listadoIps'" class="row g-4">
+        <div class="col-12">
+          <app-listado-ips></app-listado-ips>
+        </div>
+      </section>
+
+      <section *ngIf="showConsultarHojasDeVida()" class="row g-4">
+        <div class="col-12">
+          <app-gestor-ips-citas></app-gestor-ips-citas>
+        </div>
+      </section>
+
+      <section *ngIf="showMisCasosTomados()" class="row g-4">
+        <div class="col-12">
+          <app-mis-casos></app-mis-casos>
+        </div>
+      </section>
+
+      <section *ngIf="showCasosGestionados()" class="row g-4">
+        <div class="col-12">
+          <app-casos-gestionados></app-casos-gestionados>
+        </div>
+      </section>
+
+      <section *ngIf="showInforme()" class="row g-4">
+        <div class="col-12">
+          <app-informe></app-informe>
+        </div>
+      </section>
+
+      <section *ngIf="showConsultarHojasVidaPs()" class="row g-4">
+        <div class="col-12">
+          <app-consultar-hojas-vida-ps></app-consultar-hojas-vida-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showMisCasosTomadosPs()" class="row g-4">
+        <div class="col-12">
+          <app-mis-casos-tomados-ps></app-mis-casos-tomados-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showMisCasosGestionadosPs()" class="row g-4">
+        <div class="col-12">
+          <app-mis-casos-gestionados-ps></app-mis-casos-gestionados-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showMisCasosFinalizadosPs()" class="row g-4">
+        <div class="col-12">
+          <app-mis-casos-finalizados-ps></app-mis-casos-finalizados-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showFormularioPs()" class="row g-4">
+        <div class="col-12">
+          <app-formulario-ps></app-formulario-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showFormNotificacionPs()" class="row g-4">
+        <div class="col-12">
+          <app-form-notificacion-ps></app-form-notificacion-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showCreacionPreguntasPs()" class="row g-4">
+        <div class="col-12">
+          <app-creacion-preguntas-ps></app-creacion-preguntas-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showInformePs()" class="row g-4">
+        <div class="col-12">
+          <app-informe-ps></app-informe-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showRegistroIndividual()" class="row g-4">
+        <div class="col-12">
+          <app-registro-individual></app-registro-individual>
+        </div>
+      </section>
+
+      <section *ngIf="showCargaMasiva()" class="row g-4">
+        <div class="col-12">
+          <app-carga-masiva></app-carga-masiva>
+        </div>
+      </section>
+
+      <section *ngIf="showConsultaHojas()" class="row g-4">
+        <div class="col-12">
+          <app-consulta-hojas-vida></app-consulta-hojas-vida>
+        </div>
+      </section>
+
+      <section *ngIf="showGraficasHojas()" class="row g-4">
+        <div class="col-12">
+          <app-graficas-hojas-vida></app-graficas-hojas-vida>
+        </div>
+      </section>
+
+      <section *ngIf="activePanel() === 'aplicaciones'" class="row g-4">
+        <div class="col-12">
+          <app-aplicaciones></app-aplicaciones>
+        </div>
+      </section>
+
+      <section
+        *ngIf="
+          activePanel() !== 'dashboard' &&
+          activePanel() !== 'registroUsuarios' &&
+          activePanel() !== 'registroIps' &&
+          activePanel() !== 'listadoIps' &&
+          activePanel() !== 'aplicaciones' &&
+          !showListadoUsuarios() &&
+          !showEditarUsuario() &&
+          !showConsultarHojasDeVida() &&
+          !showMisCasosTomados() &&
+          !showCasosGestionados() &&
+          !showInforme() &&
+          !showConsultarHojasVidaPs() &&
+          !showMisCasosTomadosPs() &&
+          !showMisCasosGestionadosPs() &&
+          !showMisCasosFinalizadosPs() &&
+          !showFormularioPs() &&
+          !showFormNotificacionPs() &&
+          !showCreacionPreguntasPs() &&
+          !showInformePs() &&
+          !showRegistroIndividual() &&
+          !showCargaMasiva() &&
+          !showConsultaHojas() &&
+          !showGraficasHojas()
+        "
+        class="row g-4"
+      >
+        <div class="col-12">
+          <div class="card platform-card">
+            <div class="card-body p-4">
+              <h3 class="mb-1">Sección</h3>
+              <div class="text-muted">{{ activePanel() }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,134 @@
+<div class="card platform-card">
+  <div
+    class="card-header platform-card__header platform-card__header--primary"
+    style="background-color: #0d6efd; color: #ffffff"
+  >
+    <h5 class="mb-0">Listado de Usuarios</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="row mb-3 g-2">
+      <div class="col-12 col-lg-6">
+        <div class="input-group">
+          <span class="input-group-text">Buscar</span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar por usuario, documento, perfil, empresa..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+          />
+        </div>
+      </div>
+      <div class="col-12 col-lg-6 d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" (click)="exportarExcel()" [disabled]="isLoading">
+          Exportar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="consultar(true)" [disabled]="isLoading">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Consultando usuarios...</p>
+    </div>
+
+    <div *ngIf="!isLoading && filtrados.length > 0">
+      <div class="platform-table__wrap">
+        <table class="table table-striped table-hover platform-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Usuario</th>
+              <th>Documento</th>
+              <th>Perfil</th>
+              <th class="d-none d-xl-table-cell">Empresa</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let usuario of paginados; trackBy: trackById">
+              <td>
+                <strong>{{ usuario.Cr_Nombre_Usuario }}</strong>
+              </td>
+              <td>{{ usuario.Cr_Pe_Codigo.Pe_Documento }}</td>
+              <td>
+                <span class="badge" [ngClass]="getPerfilBadgeClass(usuario.Cr_Perfil)">
+                  {{ usuario.Cr_Perfil | titlecase }}
+                </span>
+              </td>
+              <td class="d-none d-xl-table-cell">{{ (usuario.Cr_Ips?.NOMBRE_IPS || usuario.Cr_Empresa || 'N/A') | titlecase }}</td>
+              <td class="text-center">
+                <button type="button" class="btn btn-outline-primary btn-sm my-1" (click)="verDetalle(usuario)">
+                  Ver
+                </button>
+                <button type="button" class="btn btn-outline-warning btn-sm ms-1 my-1" (click)="onEditarUsuario(usuario)">
+                  Editar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <nav *ngIf="totalPages > 1" aria-label="Paginación de usuarios">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button
+              type="button"
+              class="page-link"
+              (click)="changePage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
+            >
+              Anterior
+            </button>
+          </li>
+          <li class="page-item" *ngFor="let page of pageNumbers" [class.active]="currentPage === page">
+            <button type="button" class="page-link" (click)="changePage(page)">{{ page }}</button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button
+              type="button"
+              class="page-link"
+              (click)="changePage(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              [style.cursor]="currentPage === totalPages ? 'not-allowed' : 'pointer'"
+            >
+              Siguiente
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <small class="text-muted">
+            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} a
+            {{ Math.min(currentPage * itemsPerPage, filtrados.length) }} de {{ filtrados.length }} registros
+            <span *ngIf="searchTerm">(filtrados de {{ totalItems }} total)</span>
+          </small>
+        </div>
+        <div class="col-md-6 text-end">
+          <small class="text-muted">Página {{ currentPage }} de {{ totalPages }}</small>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && filtrados.length === 0" class="text-center py-4">
+      <h5 class="text-muted">No se encontraron usuarios</h5>
+      <p class="text-muted" *ngIf="searchTerm">
+        No hay resultados para "{{ searchTerm }}"
+        <br />
+        <button type="button" class="btn btn-link p-0" (click)="searchTerm = ''; onSearchChange()">
+          Limpiar búsqueda
+        </button>
+      </p>
+      <p class="text-muted" *ngIf="!searchTerm">No hay usuarios registrados</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+<div class="card platform-card">
+  <div class="card-header platform-card__header platform-card__header--primary">
+    <h5 class="mb-0">Aplicaciones</h5>
+  </div>
+
+  <div class="card-body p-0">
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- WhatsApp Bot Tab -->
+      <div *ngIf="activeTab === 'whatsapp-bot'" class="tab-pane fade show active">
+        <!-- Estadísticas con Gráfica -->
+        <div class="stats-section p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="chart-container">
+                <!-- Mostrar icono cuando no hay datos -->
+                <div *ngIf="mensajesEnviados === 0" class="chart-placeholder">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
+                    <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
+                  </svg>
+                  <p class="chart-placeholder-text">Sin datos disponibles</p>
+                  <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
+                </div>
+                <!-- Mostrar gráfica cuando hay datos -->
+                <canvas *ngIf="mensajesEnviados > 0" #statsChart></canvas>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stats-info">
+                <div class="mb-3">
+                  <h6 class="text-muted mb-2">Estado del Bot</h6>
+                  <div class="d-flex align-items-center">
+                    <div class="status-dot me-2"></div>
+                    <span class="status-text">Conectado</span>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <h6 class="text-muted mb-2">Total Mensajes</h6>
+                  <h3 class="mb-0" style="color: #b3945b;">{{ mensajesEnviados }}</h3>
+                </div>
+                <button class="btn btn-primary w-100" (click)="actualizarEstadisticas()">
+                  Actualizar Estadísticas
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área Principal - WhatsApp Embebido -->
+        <div class="iframe-container-full">
+          <div class="iframe-header">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="fw-semibold" style="font-size: 1.1rem;">WhatsApp Web</span>
+              </div>
+              <div>
+                <small style="font-size: 0.9rem;">Bot de Notificaciones</small>
+              </div>
+            </div>
+          </div>
+          <div class="iframe-wrapper">
+            <iframe
+              [src]="whatsappUrl"
+              class="whatsapp-iframe"
+              frameborder="0"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

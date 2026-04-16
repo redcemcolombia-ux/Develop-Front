@@ -1,0 +1,76 @@
+<div class="card platform-card">
+  <div
+    class="card-header platform-card__header platform-card__header--secondary d-flex justify-content-between align-items-center"
+    style="background-color: #6c757d; color: #ffffff"
+  >
+    <h5 class="mb-0">Creación de Secciones y Preguntas</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <button type="button" class="btn btn-outline-success" (click)="addSeccion()">Agregar Sección</button>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary" (click)="guardarPreguntas()" [disabled]="guardando">
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button type="button" class="btn btn-outline-info" (click)="verPreguntasActivasModal()">
+          Ver Preguntas Activas
+        </button>
+      </div>
+    </div>
+
+    <div *ngFor="let seccion of secciones; let si = index" class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2 flex-grow-1">
+          <input
+            class="form-control form-control-sm"
+            [(ngModel)]="seccion.nombre"
+            [name]="'sec_nombre_' + si"
+            placeholder="Nombre de la sección"
+          />
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeSeccion(si)">
+          Eliminar Sección
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="platform-table__wrap">
+          <div class="table-responsive">
+            <table class="table table-hover platform-table">
+              <thead class="table-dark">
+                <tr>
+                  <th>Pregunta</th>
+                  <th class="text-center" style="width: 150px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let pregunta of seccion.preguntas; let pi = index">
+                  <td>
+                    <input
+                      class="form-control"
+                      [(ngModel)]="pregunta.texto"
+                      [name]="'pregunta_' + si + '_' + pi"
+                      placeholder="Texto de la pregunta"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removePregunta(si, pi)"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-success btn-sm mt-2" (click)="addPregunta(si)">
+          Agregar pregunta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

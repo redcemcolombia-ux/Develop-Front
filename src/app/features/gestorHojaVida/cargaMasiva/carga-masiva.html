@@ -1,0 +1,315 @@
+<div class="card platform-card">
+  <div class="card-header platform-card__header platform-card__header--success d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Carga Masiva de Hojas de Vida</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="row g-3">
+      <!-- Instrucciones -->
+      <div class="col-12" *ngIf="!showPreview">
+        <div class="alert alert-info">
+          <h6 class="fw-bold">Instrucciones para Carga Masiva:</h6>
+          <ol class="mb-0">
+            <li>Descarga la plantilla de Excel haciendo clic en el botón "Descargar Plantilla"</li>
+            <li>Completa todos los campos requeridos en la plantilla</li>
+            <li>Guarda el archivo y selecciónalo usando el botón "Seleccionar Archivo"</li>
+            <li>Haz clic en "Previsualizar Datos" para cargar los registros</li>
+          </ol>
+        </div>
+        <div class="alert alert-warning">
+          <strong>Importante:</strong>
+          <ul class="mb-0">
+            <li>El archivo debe estar en formato Excel (.xlsx o .xls)</li>
+            <li>Respeta exactamente los nombres de las columnas de la plantilla</li>
+            <li>Los campos marcados como requeridos no pueden estar vacíos</li>
+            <li>Las fechas deben estar en formato YYYY-MM-DD</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Carga de archivo -->
+      <div class="col-12" *ngIf="!showPreview">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <button type="button" class="btn btn-outline-primary w-100" (click)="downloadTemplate()">
+              Descargar Plantilla
+            </button>
+          </div>
+          <div class="col-md-6">
+            <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls,.csv"
+              (change)="onFileSelected($event)">
+          </div>
+          <div class="col-12" *ngIf="selectedFile">
+            <div class="alert alert-success">
+              Archivo seleccionado: <strong>{{ selectedFile.name }}</strong>
+            </div>
+          </div>
+          <div class="col-12">
+            <button type="button" class="btn btn-success w-100" [disabled]="!selectedFile || isProcessing"
+              (click)="processExcelFile()">
+              <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2"></span>
+              {{ isProcessing ? 'Procesando...' : 'Previsualizar Datos' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Previsualización de datos -->
+      <div class="col-12" *ngIf="showPreview">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">Previsualización de Datos</h6>
+          <div>
+            <button type="button" class="btn btn-sm btn-outline-warning me-2" (click)="cancelPreview()">
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-sm btn-success"
+              [disabled]="validationErrors.length === previewData.length" (click)="confirmBulkSave()">
+              Guardar Válidos
+            </button>
+          </div>
+        </div>
+
+        <!-- Resumen de validación -->
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <div class="alert alert-info mb-0">
+              <strong>Total registros:</strong> {{ previewData.length }}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="alert alert-success mb-0">
+              <strong>Válidos:</strong> {{ previewValidCount }}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="alert alert-danger mb-0">
+              <strong>Con errores:</strong> {{ previewErrorCount }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Búsqueda -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6 class="mb-1">Registros en Previsualización</h6>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+              <span class="badge bg-primary fs-6">{{ previewFilteredData.length }}</span>
+              <span class="text-muted">de {{ previewData.length }} registros</span>
+              <span class="badge bg-success ms-2">{{ previewValidCount }} válidos</span>
+              <span class="badge bg-danger">{{ previewErrorCount }} con errores</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted mb-2">Buscar en previsualización</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="fas fa-search text-primary"></i>
+              </span>
+              <input type="text" class="form-control border-start-0 ps-0"
+                placeholder="Documento, nombre, apellido, correo..." [(ngModel)]="previewSearchTerm"
+                (input)="filtrarPreviewData()">
+              <button class="btn btn-outline-secondary" type="button" *ngIf="previewSearchTerm"
+                (click)="previewSearchTerm = ''; filtrarPreviewData()">
+                X
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector de registros por página -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center">
+              <label class="form-label me-2 mb-0">Mostrar:</label>
+              <select class="form-select form-select-sm" style="width: auto;" [(ngModel)]="previewItemsPerPage"
+                (change)="previewCurrentPage = 1">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span class="ms-2 text-muted">registros por página</span>
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <small class="text-muted">
+              Mostrando {{ (previewCurrentPage - 1) * previewItemsPerPage + 1 }} -
+              {{ Math.min(previewCurrentPage * previewItemsPerPage, previewFilteredData.length) }}
+              de {{ previewFilteredData.length }} registros
+            </small>
+          </div>
+        </div>
+
+        <!-- Tabla responsive -->
+        <div class="platform-table__wrap">
+          <div class="table-responsive">
+            <table class="table table-hover platform-table">
+              <thead>
+                <tr>
+                  <th style="min-width: 60px;">Fila</th>
+                  <th style="min-width: 100px;">Estado</th>
+                  <th style="min-width: 120px;">Documento</th>
+                  <th style="min-width: 150px;">Nombre</th>
+                  <th style="min-width: 150px;">Primer Apellido</th>
+                  <th style="min-width: 150px;">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of previewDataPaginados" [class]="item.isValid ? 'table-success' : 'table-danger'">
+                  <td>{{ item.fila }}</td>
+                  <td>
+                    <span class="badge" [class]="item.isValid ? 'bg-success' : 'bg-danger'">
+                      {{ item.isValid ? 'Válido' : 'Error' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="d-inline-block text-truncate" style="max-width: 120px;" [title]="item.data.DOCUMENTO">
+                      {{ item.data.DOCUMENTO }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="d-inline-block text-truncate" style="max-width: 150px;" [title]="item.data.NOMBRE">
+                      {{ item.data.NOMBRE }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="d-inline-block text-truncate" style="max-width: 150px;"
+                      [title]="item.data.PRIMER_APELLIDO">
+                      {{ item.data.PRIMER_APELLIDO }}
+                    </span>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-sm"
+                      [class]="'btn-' + (item.isValid ? 'success' : 'warning')" (click)="showRowDetails(item)"
+                      [title]="item.isValid ? 'Ver detalles del registro válido' : 'Ver detalles y errores del registro'">
+                      {{ item.isValid ? 'Ver Detalles' : 'Ver Errores' }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mensaje cuando no hay datos -->
+        <div *ngIf="previewDataPaginados.length === 0" class="text-center py-5">
+          <h5 class="text-muted mb-2">No se encontraron resultados</h5>
+          <p class="text-muted" *ngIf="previewSearchTerm">
+            No hay registros que coincidan con: <strong>"{{ previewSearchTerm }}"</strong>
+          </p>
+        </div>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="previewTotalPages > 1">
+          <div>
+            <small class="text-muted">
+              Página {{ previewCurrentPage }} de {{ previewTotalPages }}
+            </small>
+          </div>
+          <nav aria-label="Paginación de previsualización">
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="previewCurrentPage === 1">
+                <button class="page-link" (click)="cambiarPaginaPreview(previewCurrentPage - 1)"
+                  [disabled]="previewCurrentPage === 1">
+                  Anterior
+                </button>
+              </li>
+
+              <li *ngFor="let page of previewPaginasArray" class="page-item"
+                [class.active]="page === previewCurrentPage" [class.disabled]="page === -1">
+                <button *ngIf="page !== -1" class="page-link" (click)="cambiarPaginaPreview(page)">
+                  {{ page }}
+                </button>
+                <span *ngIf="page === -1" class="page-link">...</span>
+              </li>
+
+              <li class="page-item" [class.disabled]="previewCurrentPage === previewTotalPages">
+                <button class="page-link" (click)="cambiarPaginaPreview(previewCurrentPage + 1)"
+                  [disabled]="previewCurrentPage === previewTotalPages">
+                  Siguiente
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Resultados del procesamiento -->
+      <div class="col-12" *ngIf="showResults">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">Resultados del Procesamiento</h6>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearResults()">
+            Limpiar
+          </button>
+        </div>
+
+        <!-- Mensaje de resultado -->
+        <div class="alert" [class]="hasErrors ? 'alert-warning' : 'alert-success'" role="alert">
+          <strong>{{ processingMessage }}</strong>
+        </div>
+
+        <!-- Registros exitosos -->
+        <div *ngIf="successfulRecords.length > 0" class="mb-4">
+          <h6 class="text-success">
+            Registros Guardados Exitosamente ({{ successfulRecords.length }})
+          </h6>
+          <div class="platform-table__wrap">
+            <div class="table-responsive">
+              <table class="table table-hover platform-table">
+                <thead class="table-success">
+                  <tr>
+                    <th>#</th>
+                    <th>Documento</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let record of successfulRecords; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ record.DOCUMENTO }}</td>
+                    <td>{{ record.NOMBRE }}</td>
+                    <td>
+                      <span class="badge bg-success">Guardado</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentos duplicados -->
+        <div *ngIf="duplicateRecords.length > 0">
+          <h6 class="text-warning">
+            Documentos Duplicados ({{ duplicateRecords.length }})
+          </h6>
+          <div class="platform-table__wrap">
+            <div class="table-responsive">
+              <table class="table table-hover platform-table">
+                <thead class="table-warning">
+                  <tr>
+                    <th>#</th>
+                    <th>Documento</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let record of duplicateRecords; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ record.documento }}</td>
+                    <td>{{ record.nombre }}</td>
+                    <td>
+                      <span class="badge bg-warning">Ya existe</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

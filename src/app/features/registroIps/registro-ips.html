@@ -1,0 +1,285 @@
+<div class="card platform-card">
+  <div
+    class="card-header platform-card__header platform-card__header--primary"
+    style="background-color: #0d6efd; color: #ffffff"
+  >
+    <h5 class="mb-0">Registro IPS</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row mb-4">
+        <div class="col-12">
+          <h6 class="border-bottom pb-2 mb-3">Información Básica</h6>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="NOMBRE_IPS" class="form-label">Nombre de la IPS <span class="text-danger">*</span></label>
+          <input
+            id="NOMBRE_IPS"
+            type="text"
+            class="form-control"
+            formControlName="NOMBRE_IPS"
+            [class.is-invalid]="isFieldInvalid('NOMBRE_IPS')"
+            placeholder="Ingrese el nombre de la IPS"
+          />
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('NOMBRE_IPS')">
+            {{ getFieldError('NOMBRE_IPS') }}
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="NIT" class="form-label">NIT <span class="text-danger">*</span></label>
+          <input
+            id="NIT"
+            type="text"
+            class="form-control"
+            formControlName="NIT"
+            [class.is-invalid]="isFieldInvalid('NIT')"
+            placeholder="123456789-0"
+          />
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('NIT')">
+            {{ getFieldError('NIT') }}
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="REPRESENTANTE" class="form-label"
+            >Representante Legal <span class="text-danger">*</span></label
+          >
+          <input
+            id="REPRESENTANTE"
+            type="text"
+            class="form-control"
+            formControlName="REPRESENTANTE"
+            [class.is-invalid]="isFieldInvalid('REPRESENTANTE')"
+            placeholder="Nombre del representante legal"
+          />
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('REPRESENTANTE')">
+            {{ getFieldError('REPRESENTANTE') }}
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="ESTADO" class="form-label">Estado <span class="text-danger">*</span></label>
+          <select
+            id="ESTADO"
+            class="form-select"
+            formControlName="ESTADO"
+            [class.is-invalid]="isFieldInvalid('ESTADO')"
+          >
+            <option value="">Seleccione un estado</option>
+            <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('ESTADO')">
+            {{ getFieldError('ESTADO') }}
+          </div>
+        </div>
+      </div>
+
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="border-bottom pb-2 mb-3">Información de Contacto</h6>
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label for="DIRECCION" class="form-label">Dirección <span class="text-danger">*</span></label>
+            <input
+              id="DIRECCION"
+              type="text"
+              class="form-control"
+              formControlName="DIRECCION"
+              [class.is-invalid]="isFieldInvalid('DIRECCION')"
+              placeholder="Dirección completa de la IPS"
+            />
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('DIRECCION')">
+              {{ getFieldError('DIRECCION') }}
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="TELEFONO" class="form-label">Teléfono <span class="text-danger">*</span></label>
+            <input
+              id="TELEFONO"
+              type="tel"
+              class="form-control"
+              formControlName="TELEFONO"
+              [class.is-invalid]="isFieldInvalid('TELEFONO')"
+              placeholder="Número de teléfono"
+            />
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('TELEFONO')">
+              {{ getFieldError('TELEFONO') }}
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="CORREO" class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
+            <input
+              id="CORREO"
+              type="email"
+              class="form-control"
+              formControlName="CORREO"
+              [class.is-invalid]="isFieldInvalid('CORREO')"
+              placeholder="correo@ejemplo.com"
+            />
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('CORREO')">
+              {{ getFieldError('CORREO') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="border-bottom pb-2 mb-3">Ubicación</h6>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label for="DEPARTAMENTO" class="form-label">Departamento <span class="text-danger">*</span></label>
+            <input
+              id="DEPARTAMENTO"
+              type="text"
+              class="form-control"
+              formControlName="DEPARTAMENTO"
+              [class.is-invalid]="isFieldInvalid('DEPARTAMENTO')"
+              placeholder="Ingrese el departamento"
+            />
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('DEPARTAMENTO')">
+              {{ getFieldError('DEPARTAMENTO') }}
+            </div>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label for="CIUDAD" class="form-label">Ciudad <span class="text-danger">*</span></label>
+            <input
+              id="CIUDAD"
+              type="text"
+              class="form-control"
+              formControlName="CIUDAD"
+              [class.is-invalid]="isFieldInvalid('CIUDAD')"
+              placeholder="Ciudad"
+            />
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('CIUDAD')">
+              {{ getFieldError('CIUDAD') }}
+            </div>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label for="REGIONAL" class="form-label">Regional <span class="text-danger">*</span></label>
+            <select
+              id="REGIONAL"
+              class="form-select"
+              formControlName="REGIONAL"
+              [class.is-invalid]="isFieldInvalid('REGIONAL')"
+            >
+              <option value="">Seleccione una regional</option>
+              <option *ngFor="let regional of regionales" [value]="regional">{{ regional }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('REGIONAL')">
+              {{ getFieldError('REGIONAL') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="border-bottom pb-2 mb-3">Información de Atención</h6>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="tipo_atencion" class="form-label">Tipo de Atención <span class="text-danger">*</span></label>
+            <select
+              id="tipo_atencion"
+              class="form-select"
+              formControlName="tipo_atencion"
+              [class.is-invalid]="isFieldInvalid('tipo_atencion')"
+            >
+              <option value="">Seleccione el tipo de atención</option>
+              <option *ngFor="let tipo of tiposAtencion" [value]="tipo">{{ tipo }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('tipo_atencion')">
+              {{ getFieldError('tipo_atencion') }}
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Especialidades <span class="text-danger">*</span></label>
+            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto">
+              <div class="row">
+                <div class="col-md-6" *ngFor="let especialidad of especialidades">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="'especialidad_' + especialidad"
+                      [checked]="isEspecialidadSelected(especialidad)"
+                      (change)="onEspecialidadChange(especialidad, $event)"
+                    />
+                    <label class="form-check-label" [for]="'especialidad_' + especialidad">
+                      {{ especialidad }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="text-danger small mt-2" *ngIf="submitted && especialidadesArray.length === 0">
+                Este campo es requerido
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="border-bottom pb-2 mb-3">Información Operacional</h6>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="horario_atencion" class="form-label">Horario de Atención <span class="text-danger">*</span></label>
+            <select
+              id="horario_atencion"
+              class="form-select"
+              formControlName="horario_atencion"
+              [class.is-invalid]="isFieldInvalid('horario_atencion')"
+            >
+              <option value="">Seleccione el horario</option>
+              <option *ngFor="let horario of horariosAtencion" [value]="horario">{{ horario }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('horario_atencion')">
+              {{ getFieldError('horario_atencion') }}
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="nivel_complejidad" class="form-label"
+              >Nivel de Complejidad <span class="text-danger">*</span></label
+            >
+            <select
+              id="nivel_complejidad"
+              class="form-select"
+              formControlName="nivel_complejidad"
+              [class.is-invalid]="isFieldInvalid('nivel_complejidad')"
+            >
+              <option value="">Seleccione el nivel</option>
+              <option *ngFor="let nivel of nivelesComplejidad" [value]="nivel">{{ nivel }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('nivel_complejidad')">
+              {{ getFieldError('nivel_complejidad') }}
+            </div>
+          </div>
+        </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" (click)="resetForm()" [disabled]="isLoading">
+              Limpiar
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              {{ isLoading ? 'Registrando...' : 'Registrar IPS' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,37 @@
+/* Estilos para dark mode */
+:host-context(.theme-dark) input[type="file"].form-control {
+  background: #1a1d29;
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+:host-context(.theme-dark) input[type="file"].form-control::file-selector-button {
+  background: #252936;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.375rem 0.75rem;
+  margin-right: 0.75rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+:host-context(.theme-dark) input[type="file"].form-control::file-selector-button:hover {
+  background: #2d3142;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* Para navegadores webkit (Chrome, Safari, Edge) */
+:host-context(.theme-dark) input[type="file"].form-control::-webkit-file-upload-button {
+  background: #252936;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.375rem 0.75rem;
+  margin-right: 0.75rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+:host-context(.theme-dark) input[type="file"].form-control::-webkit-file-upload-button:hover {
+  background: #2d3142;
+  border-color: rgba(255, 255, 255, 0.24);
+}

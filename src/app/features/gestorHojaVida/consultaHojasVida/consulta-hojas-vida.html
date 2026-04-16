@@ -1,0 +1,120 @@
+<div class="card platform-card">
+  <div class="card-header platform-card__header platform-card__header--success d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Consulta de Hojas de Vida</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <!-- Loader -->
+    <div *ngIf="isLoadingConsulta" class="text-center py-5">
+      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <h5 class="text-muted">Consultando hojas de vida...</h5>
+      <p class="text-muted">Por favor espere un momento</p>
+    </div>
+
+    <!-- Contenido principal -->
+    <div *ngIf="!isLoadingConsulta">
+      <!-- Header con información y buscador -->
+      <div class="row mb-3 g-2">
+        <div class="col-12 col-lg-6">
+          <div class="input-group">
+            <span class="input-group-text">Buscar</span>
+            <input type="text" class="form-control" placeholder="Documento, nombre, apellido, correo o ciudad..."
+              [(ngModel)]="searchTerm" (input)="filtrarHojasVida()">
+          </div>
+        </div>
+        <div class="col-12 col-lg-6 d-flex justify-content-end align-items-center gap-2">
+          <span class="badge bg-primary fs-6">{{ hojasVidaFiltradas.length }}</span>
+          <span class="text-muted">hojas de vida encontradas</span>
+        </div>
+      </div>
+
+      <!-- Tabla de datos -->
+      <div class="platform-table__wrap">
+        <table class="table table-striped table-hover platform-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Documento</th>
+              <th>Nombre</th>
+              <th class="d-none d-md-table-cell">Ciudad</th>
+              <th class="d-none d-lg-table-cell">Correo</th>
+              <th class="d-none">Estado</th>
+              <th class="text-center">Datos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let hoja of hojasVidaPaginadas">
+              <td>
+                <strong>{{ hoja.DOCUMENTO }}</strong>
+              </td>
+              <td>
+                <strong>{{ capitalize(hoja.NOMBRE) }} {{ capitalize(hoja.PRIMER_APELLIDO) }}</strong>
+              </td>
+              <td class="d-none d-md-table-cell">
+                {{ capitalize(hoja.CIUDAD) }}
+              </td>
+              <td class="d-none d-lg-table-cell">
+                {{ hoja.CORREO?.toLowerCase() }}
+              </td>
+              <td class="d-none">
+                <span class="badge" [ngClass]="getBadgeClass(hoja.ESTADO)">
+                  {{ hoja.ESTADO }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="verDetalleHoja(hoja)">
+                  Ver
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mensaje cuando no hay datos -->
+      <div *ngIf="hojasVidaPaginadas.length === 0" class="text-center py-5">
+        <h5 class="text-muted mb-2">No se encontraron resultados</h5>
+        <p class="text-muted" *ngIf="searchTerm">
+          No hay hojas de vida que coincidan con: <strong>"{{ searchTerm }}"</strong>
+        </p>
+        <p class="text-muted" *ngIf="!searchTerm">
+          No hay hojas de vida registradas en el sistema
+        </p>
+      </div>
+
+      <!-- Paginación -->
+      <nav *ngIf="totalPages > 1" aria-label="Paginación de hojas de vida">
+        <ul class="pagination justify-content-center mt-4">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1">
+              Anterior
+            </button>
+          </li>
+          <li *ngFor="let page of paginasArray" class="page-item" [class.active]="page === currentPage">
+            <button class="page-link" (click)="cambiarPagina(page)">{{ page }}</button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button class="page-link" (click)="cambiarPagina(currentPage + 1)"
+              [disabled]="currentPage === totalPages">
+              Siguiente
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="row mt-3" *ngIf="hojasVidaFiltradas.length > 0">
+        <div class="col-md-6">
+          <small class="text-muted">
+            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} a
+            {{ currentPage * itemsPerPage > hojasVidaFiltradas.length ? hojasVidaFiltradas.length : currentPage * itemsPerPage }} de {{ hojasVidaFiltradas.length }} registros
+            <span *ngIf="searchTerm">(filtrados de {{ totalItems }} total)</span>
+          </small>
+        </div>
+        <div class="col-md-6 text-end">
+          <small class="text-muted">Página {{ currentPage }} de {{ totalPages }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<header class="topbar mb-3">
+  <div class="left d-flex align-items-center gap-3">
+    <button class="icon-btn" type="button" (click)="onToggleMenu()" title="Toggle menu">☰</button>
+  </div>
+
+  <div class="right d-flex align-items-center gap-3">
+    <div class="session-info d-flex align-items-center gap-2">
+      <div class="session-status text-success">
+        <span class="ms-1">Conectado</span>
+      </div>
+    </div>
+
+    <div class="theme-toggle d-flex align-items-center">
+      <button
+        type="button"
+        class="platform-icon-btn platform-theme-btn"
+        (click)="toggleTheme()"
+        [attr.aria-label]="themeLabel()"
+        [title]="themeLabel()"
+      >
+        <svg *ngIf="!isDarkMode()" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M21.64 13a1 1 0 0 0-1.05-.14 8 8 0 0 1-10.45-10.45 1 1 0 0 0-1.19-1.19A10 10 0 1 0 22.83 14.1a1 1 0 0 0-1.19-1.1z"
+          />
+        </svg>
+        <svg *ngIf="isDarkMode()" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.8zm10.45 14.32l1.79 1.8l1.79-1.8l-1.79-1.79zM12 4a1 1 0 0 0 1-1V1h-2v2a1 1 0 0 0 1 1zm0 18a1 1 0 0 0-1 1v2h2v-2a1 1 0 0 0-1-1zM4 11H2v2h2a1 1 0 0 0 0-2zm18 0a1 1 0 0 0 0 2h2v-2zM6.76 19.16l-1.8 1.8l1.8 1.79l1.79-1.79zm12.4-12.52l1.79-1.8l-1.79-1.79l-1.8 1.79zM12 6a6 6 0 1 0 6 6a6 6 0 0 0-6-6z"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="user d-flex align-items-center gap-2">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="name">{{ displayName }}</div>
+    </div>
+
+    <div class="actions d-flex align-items-center gap-2">
+      <button
+        class="btn btn-sm btn-primary topbar__logout-btn"
+        type="button"
+        (click)="logout()"
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+      >
+        <svg class="topbar__logout-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M10 17v-2h4v-6h-4V7l-5 5zm9-13H5c-1.1 0-2 .9-2 2v4h2V6h14v12H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2"
+          />
+        </svg>
+        <span class="topbar__logout-text ms-1">Cerrar Sesión</span>
+      </button>
+    </div>
+  </div>
+</header>

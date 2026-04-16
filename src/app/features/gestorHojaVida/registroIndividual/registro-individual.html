@@ -1,0 +1,256 @@
+<div class="card platform-card">
+  <div class="card-header platform-card__header platform-card__header--primary d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Registro Individual de Hoja de Vida</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="row g-4">
+        <!-- Identificadores y Códigos -->
+        <div class="col-12">
+          <h6 class="fw-bold mb-3">Identificadores y Códigos</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">ID Hoja de Vida <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="pkeyHojaVida"
+                [class.is-invalid]="submitted && f['pkeyHojaVida'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['pkeyHojaVida'].invalid">
+                Este campo es requerido
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">ID Aspirante <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="pkeyAspirant"
+                [class.is-invalid]="submitted && f['pkeyAspirant'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['pkeyAspirant'].invalid">
+                Este campo es requerido
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Programa Académico <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="codiProgAcad"
+                [class.is-invalid]="submitted && f['codiProgAcad'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['codiProgAcad'].invalid">
+                Este campo es requerido
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Año Período <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="annoPeriacad"
+                [class.is-invalid]="submitted && f['annoPeriacad'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['annoPeriacad'].invalid">
+                Año requerido (2020-2030)
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Número Período <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="numePeriacad">
+                <option value="1">1 (Primer Semestre)</option>
+                <option value="2">2 (Segundo Semestre)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Código Inscripción <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="codigoInscripcion"
+                [class.is-invalid]="submitted && f['codigoInscripcion'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['codigoInscripcion'].invalid">
+                Este campo es requerido
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datos Personales -->
+        <div class="col-12">
+          <h6 class="fw-bold mb-3">Datos Personales</h6>
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Documento <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="documento"
+                [class.is-invalid]="submitted && f['documento'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['documento'].invalid">
+                Documento requerido
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Nombre(s) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="nombre"
+                [class.is-invalid]="submitted && f['nombre'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['nombre'].invalid">
+                Nombre requerido
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Primer Apellido <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="primerApellido"
+                [class.is-invalid]="submitted && f['primerApellido'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['primerApellido'].invalid">
+                Primer apellido requerido
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Segundo Apellido</label>
+              <input type="text" class="form-control" formControlName="segundoApellido">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Edad <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="edad"
+                [class.is-invalid]="submitted && f['edad'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['edad'].invalid">
+                Edad requerida (16-35)
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Género <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="genero">
+                <option *ngFor="let g of generos" [value]="g">{{ g }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Fecha Nacimiento <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" formControlName="fechNacimiento"
+                [class.is-invalid]="submitted && f['fechNacimiento'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['fechNacimiento'].invalid">
+                Fecha de nacimiento requerida
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Correo <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" formControlName="correo"
+                [class.is-invalid]="submitted && f['correo'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['correo'].invalid">
+                Correo válido requerido
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacto y Ubicación -->
+        <div class="col-12">
+          <h6 class="fw-bold mb-3">Contacto y Ubicación</h6>
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Teléfono</label>
+              <input type="text" class="form-control" formControlName="telefono"
+                [class.is-invalid]="submitted && f['telefono'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['telefono'].invalid">
+                Formato de teléfono inválido
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Celular <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="celular"
+                [class.is-invalid]="submitted && f['celular'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['celular'].invalid">
+                Celular requerido
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Dirección <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="direccion"
+                [class.is-invalid]="submitted && f['direccion'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['direccion'].invalid">
+                Dirección requerida
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Ciudad <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="ciudad"
+                [class.is-invalid]="submitted && f['ciudad'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['ciudad'].invalid">
+                Ciudad requerida
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Estado <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="estado">
+                <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Departamento <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="departamento"
+                [class.is-invalid]="submitted && f['departamento'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['departamento'].invalid">
+                Departamento requerido
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Regional <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="regional"
+                [class.is-invalid]="submitted && f['regional'].invalid">
+                <option value="">Seleccionar...</option>
+                <option *ngFor="let r of regionales" [value]="r">{{ r }}</option>
+              </select>
+              <div class="invalid-feedback" *ngIf="submitted && f['regional'].invalid">
+                Regional requerida
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información Complementaria -->
+        <div class="col-12">
+          <h6 class="fw-bold mb-3">Información Complementaria</h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Campo Complementario 1</label>
+              <textarea class="form-control" formControlName="complementaria1" rows="3"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Campo Complementario 2</label>
+              <textarea class="form-control" formControlName="complementaria2" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datos de Inscripción y Clasificación -->
+        <div class="col-12">
+          <h6 class="fw-bold mb-3">Datos de Inscripción y Clasificación</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Fecha Inscripción <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" formControlName="fechaInscripcion"
+                [class.is-invalid]="submitted && f['fechaInscripcion'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['fechaInscripcion'].invalid">
+                Fecha de inscripción requerida
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Grupo Minoritario</label>
+              <select class="form-select" formControlName="grupMino">
+                <option *ngFor="let g of gruposMinoritarios" [value]="g">{{ g }}</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Estrato <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="estrato">
+                <option *ngFor="let e of estratos" [value]="e">{{ e }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Tipo Medio <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="tipoMedio">
+                <option *ngFor="let t of tiposMedio" [value]="t">{{ t }}</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Colegio <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="colegio"
+                [class.is-invalid]="submitted && f['colegio'].invalid">
+              <div class="invalid-feedback" *ngIf="submitted && f['colegio'].invalid">
+                Colegio requerido
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

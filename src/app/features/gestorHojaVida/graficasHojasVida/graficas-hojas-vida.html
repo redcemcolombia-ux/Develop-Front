@@ -1,0 +1,153 @@
+<div class="card platform-card">
+  <div class="card-header platform-card__header platform-card__header--primary d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Gráficas y Estadísticas</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <!-- Controles superiores -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <h6 class="card-title">Actualizar Gráficas</h6>
+            <p class="card-text small">Actualiza manualmente los datos de las gráficas</p>
+            <button class="btn btn-primary" (click)="cargarDatosGraficas()">
+              Actualizar Ahora
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <h6 class="card-title">Exportar Datos</h6>
+            <p class="card-text small">Descargar información completa en Excel</p>
+            <button class="btn btn-success" (click)="descargarExcel()" [disabled]="isLoadingGraficas">
+              <span *ngIf="isLoadingGraficas" class="spinner-border spinner-border-sm me-2"></span>
+              {{ isLoadingGraficas ? 'Descargando...' : 'Descargar Excel' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas generales -->
+    <div class="row mb-4 g-3">
+      <div class="col-md-3 col-sm-6">
+        <div class="card bg-primary text-white h-100 shadow-sm">
+          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
+            <h2 class="mb-2 fw-bold text-white">{{ totalHojasVida }}</h2>
+            <p class="mb-0 text-white">Total Hojas de Vida</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="card bg-success text-white h-100 shadow-sm">
+          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
+            <h2 class="mb-2 fw-bold text-white">{{ estadisticasEstado.PROCESADO || 0 }}</h2>
+            <p class="mb-0 text-white">Procesadas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="card bg-warning text-white h-100 shadow-sm">
+          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
+            <h2 class="mb-2 fw-bold text-white">{{ estadisticasEstado['EN ESPERA'] || 0 }}</h2>
+            <p class="mb-0 text-white">En Espera</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="card bg-info text-white h-100 shadow-sm">
+          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
+            <h2 class="mb-2 fw-bold text-white">{{ estadisticasEstado['EN GESTION'] || 0 }}</h2>
+            <p class="mb-0 text-white">En Gestión</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficas -->
+    <div class="row g-3">
+      <!-- Gráfica de Torta -->
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+          <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h6 class="mb-0 fw-semibold">📊 Distribución por Estado</h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="chart-container" style="position: relative; height: 400px;">
+              <!-- Placeholder cuando no hay datos -->
+              <div *ngIf="totalHojasVida === 0" class="chart-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
+                  <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
+                </svg>
+                <p class="chart-placeholder-text">Sin datos disponibles</p>
+                <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
+              </div>
+              <!-- Gráfica cuando hay datos -->
+              <canvas *ngIf="totalHojasVida > 0" #pieChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfica de Barras -->
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+          <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h6 class="mb-0 fw-semibold">📈 Cantidad por Estado</h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="chart-container" style="position: relative; height: 400px;">
+              <!-- Placeholder cuando no hay datos -->
+              <div *ngIf="totalHojasVida === 0" class="chart-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
+                  <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
+                </svg>
+                <p class="chart-placeholder-text">Sin datos disponibles</p>
+                <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
+              </div>
+              <!-- Gráfica cuando hay datos -->
+              <canvas *ngIf="totalHojasVida > 0" #barChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfica de Barras por Ciudad -->
+    <div class="row">
+      <div class="col-12 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h6 class="mb-0 fw-semibold">🌆 Distribución por Ciudad (Top 10)</h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="chart-container" style="position: relative; height: 400px;">
+              <!-- Placeholder cuando no hay datos -->
+              <div *ngIf="totalHojasVida === 0" class="chart-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
+                  <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
+                </svg>
+                <p class="chart-placeholder-text">Sin datos disponibles</p>
+                <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
+              </div>
+              <!-- Gráfica cuando hay datos -->
+              <canvas *ngIf="totalHojasVida > 0" #cityChart></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Última actualización -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-info">
+          <strong>Última actualización:</strong> {{ ultimaActualizacion | date:'dd/MM/yyyy HH:mm:ss' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

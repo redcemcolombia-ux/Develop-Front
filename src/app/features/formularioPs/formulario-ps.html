@@ -1,0 +1,103 @@
+<div class="card platform-card">
+  <div
+    class="card-header platform-card__header platform-card__header--info d-flex justify-content-between align-items-center"
+    style="background-color: #0d6efd; color: #ffffff"
+  >
+    <h5 class="mb-0">Formulario de Psicología</h5>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <label class="form-label">Aspirantes</label>
+        <div class="input-group">
+          <input
+            class="form-control"
+            [(ngModel)]="aspiranteSearchTerm"
+            placeholder="Documento Identidad"
+            (input)="searchAspirante()"
+          />
+          <button class="btn btn-outline-secondary" type="button" (click)="limpiarBusqueda()">×</button>
+        </div>
+        <div *ngIf="aspiranteEncontrado" class="mt-3">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row g-2">
+                <div class="col-6">
+                  <small class="text-muted">Nombre</small><br />
+                  <span>
+                    {{ aspiranteEncontrado.NOMBRE }} {{ aspiranteEncontrado.PRIMER_APELLIDO }}
+                    {{ aspiranteEncontrado.SEGUNDO_APELLIDO }}
+                  </span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Documento</small><br />
+                  <span>{{ aspiranteEncontrado.DOCUMENTO }}</span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Ciudad</small><br />
+                  <span>{{ aspiranteEncontrado.CIUDAD }}</span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Edad</small><br />
+                  <span>{{ aspiranteEncontrado.EDAD }}</span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Género</small><br />
+                  <span>{{ aspiranteEncontrado.GENERO }}</span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Correo</small><br />
+                  <span>{{ aspiranteEncontrado.CORREO }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngFor="let seccion of formSecciones" class="mb-4">
+      <h6 class="mb-3">{{ seccion.tipo }}</h6>
+      <div class="platform-table__wrap">
+        <div class="table-responsive">
+          <table class="table table-hover platform-table">
+            <thead class="table-dark">
+              <tr>
+                <th>Pregunta</th>
+                <th style="width: 150px">Respuesta</th>
+                <th>Ampliación</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let pregunta of seccion.preguntas; let i = index">
+                <td>{{ pregunta.pregunta }}</td>
+                <td>
+                  <select class="form-select" [(ngModel)]="pregunta.respuesta" [name]="'resp_' + seccion.tipo + '_' + i">
+                    <option value="SI">SI</option>
+                    <option value="NO">NO</option>
+                    <option value="NO APLICA">NO APLICA</option>
+                  </select>
+                </td>
+                <td>
+                  <textarea
+                    class="form-control"
+                    rows="2"
+                    [(ngModel)]="pregunta.ampliacion"
+                    [name]="'amp_' + seccion.tipo + '_' + i"
+                  ></textarea>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-end mt-4">
+      <button class="btn btn-primary" type="button" (click)="guardarFormulario()" [disabled]="isSaving">
+        {{ isSaving ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

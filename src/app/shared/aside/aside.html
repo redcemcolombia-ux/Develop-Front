@@ -1,0 +1,303 @@
+<aside class="sidebar d-flex flex-column">
+  <div
+    class="brand d-flex align-items-center gap-2 fw-bold"
+    role="button"
+    [attr.title]="userName"
+    (click)="openDashboard()"
+  >
+    <span class="brand-logo d-inline-grid place-items-center">
+      <img src="/assets/images/man.png" alt="" class="logo" width="100%" style="height: 40px" />
+    </span>
+    <span class="brand-text">{{ userName }}</span>
+  </div>
+
+  <nav class="menu menu-scrollable">
+    <!-- Admin menu with submenu -->
+    <div class="menu-group" *ngIf="canViewGestorUsuarios">
+      <a
+        class="menu-item d-grid"
+        title="Admin"
+        [class.active]="activePanel === 'registroUsuarios' || activePanel === 'listadoUsuarios'"
+        [class.expanded]="adminMenuExpanded"
+        (click)="toggleAdminMenu()"
+      >
+        <span class="icon">👤</span>
+        <span class="text" style="font-size: 1rem; text-transform: uppercase">Admin</span>
+        <span class="submenu-arrow">{{ adminMenuExpanded ? '▾' : '▸' }}</span>
+      </a>
+
+      <div class="submenu" *ngIf="adminMenuExpanded">
+        <a
+          class="submenu-item"
+          title="Registro Usuario"
+          [class.active]="activePanel === 'registroUsuarios'"
+          (click)="openRegistroUsuarios()"
+        >
+          <span class="icon">📝</span>
+          <span class="text">Registro Usuario</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Listado Usuario"
+          [class.active]="activePanel === 'listadoUsuarios'"
+          (click)="openListadoUsuarios()"
+        >
+          <span class="icon">📋</span>
+          <span class="text">Listado Usuario</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Admin IPS menu with submenu -->
+    <div class="menu-group" *ngIf="canViewAdminIps">
+      <a
+        class="menu-item d-grid"
+        title="Admin IPS"
+        [class.active]="activePanel === 'registroIps' || activePanel === 'listadoIps'"
+        [class.expanded]="adminIpsMenuExpanded"
+        (click)="toggleAdminIpsMenu()"
+      >
+        <span class="icon">🏥</span>
+        <span class="text" style="font-size: 1rem; text-transform: uppercase">Admin IPS</span>
+        <span class="submenu-arrow">{{ adminIpsMenuExpanded ? '▾' : '▸' }}</span>
+      </a>
+
+      <div class="submenu" *ngIf="adminIpsMenuExpanded">
+        <a
+          class="submenu-item"
+          title="Registro IPS"
+          [class.active]="activePanel === 'registroIps'"
+          (click)="openRegistroIps()"
+        >
+          <span class="icon">➕</span>
+          <span class="text">Registro IPS</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Listado IPS"
+          [class.active]="activePanel === 'listadoIps'"
+          (click)="openListadoIps()"
+        >
+          <span class="icon">📋</span>
+          <span class="text">Listado IPS</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- IPS Gestión menu with submenu -->
+    <div class="menu-group" *ngIf="canViewIpsGestion">
+      <a
+        class="menu-item d-grid"
+        title="IPS Gestión"
+        [class.active]="activePanel === 'consultarHojasVida' || activePanel === 'misCasosTomados' || activePanel === 'misCasosGestionados' || activePanel === 'informe'"
+        [class.expanded]="ipsGestionMenuExpanded"
+        (click)="toggleIpsGestionMenu()"
+      >
+        <span class="icon">📅</span>
+        <span class="text" style="font-size: 1rem; text-transform: uppercase">IPS Gestión</span>
+        <span class="submenu-arrow">{{ ipsGestionMenuExpanded ? '▾' : '▸' }}</span>
+      </a>
+
+      <div class="submenu" *ngIf="ipsGestionMenuExpanded">
+        <a
+          class="submenu-item"
+          title="Consultar Hojas de Vida"
+          [class.active]="activePanel === 'consultarHojasVida'"
+          (click)="openConsultarHojasVida()"
+        >
+          <span class="icon">🔍</span>
+          <span class="text">Consultar Hojas de Vida</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Mis Casos Tomados"
+          [class.active]="activePanel === 'misCasosTomados'"
+          (click)="openMisCasosTomados()"
+        >
+          <span class="icon">📂</span>
+          <span class="text">Mis Casos Tomados</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Casos Gestionados"
+          [class.active]="activePanel === 'misCasosGestionados'"
+          (click)="openMisCasosGestionados()"
+        >
+          <span class="icon">✅</span>
+          <span class="text">Casos Gestionados</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Informe"
+          [class.active]="activePanel === 'informe'"
+          (click)="openInforme()"
+        >
+          <span class="icon">📊</span>
+          <span class="text">Informe</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Psicología Gestión menu with submenu -->
+    <div class="menu-group" *ngIf="canViewPsicologiaGestion">
+      <a
+        class="menu-item d-grid"
+        title="Psicología Gestión"
+        [class.active]="activePanel === 'consultarHojasVidaPs' || activePanel === 'misCasosTomadosPs' || activePanel === 'formularioPs' || activePanel === 'formNotificacionPs' || activePanel === 'creacionPreguntasPs' || activePanel === 'informePs'"
+        [class.expanded]="psicologiaGestionMenuExpanded"
+        (click)="togglePsicologiaGestionMenu()"
+      >
+        <span class="icon">🧠</span>
+        <span class="text" style="font-size: 1rem; text-transform: uppercase">Psicología Gestión</span>
+        <span class="submenu-arrow">{{ psicologiaGestionMenuExpanded ? '▾' : '▸' }}</span>
+      </a>
+
+      <div class="submenu" *ngIf="psicologiaGestionMenuExpanded">
+        <a
+          class="submenu-item"
+          title="Consultar Hojas de Vida"
+          [class.active]="activePanel === 'consultarHojasVidaPs'"
+          (click)="openConsultarHojasVidaPs()"
+        >
+          <span class="icon">🔍</span>
+          <span class="text">Consultar Hojas de Vida</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Mis Casos Tomados"
+          [class.active]="activePanel === 'misCasosTomadosPs'"
+          (click)="openMisCasosTomadosPs()"
+        >
+          <span class="icon">📂</span>
+          <span class="text">Mis Casos Tomados</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Mis casos en gestion"
+          [class.active]="activePanel === 'misCasosGestionadosPs'"
+          (click)="openMisCasosGestionadosPs()"
+        >
+          <span class="icon">✅</span>
+          <span class="text">Mis casos en gestion</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Mis casos gestionados"
+          [class.active]="activePanel === 'misCasosFinalizadosPs'"
+          (click)="openMisCasosFinalizadosPs()"
+        >
+          <span class="icon">🏁</span>
+          <span class="text">Mis casos gestionados</span>
+        </a>
+        <!-- <a
+          class="submenu-item"
+          title="Formulario"
+          [class.active]="activePanel === 'formularioPs'"
+          (click)="openFormularioPs()"
+        >
+          <span class="icon">📝</span>
+          <span class="text">Formulario</span>
+        </a> -->
+        <a
+          *ngIf="canViewFormularioNotificacion"
+          class="submenu-item"
+          title="Formulario Notificación"
+          [class.active]="activePanel === 'formNotificacionPs'"
+          (click)="openFormNotificacionPs()"
+        >
+          <span class="icon">📧</span>
+          <span class="text">Formulario Notificación</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Informe"
+          [class.active]="activePanel === 'informePs'"
+          (click)="openInformePs()"
+        >
+          <span class="icon">📊</span>
+          <span class="text">Informe</span>
+        </a>
+        <!-- <a
+          class="submenu-item"
+          title="Creación Preguntas"
+          [class.active]="activePanel === 'creacionPreguntasPs'"
+          (click)="openCreacionPreguntasPs()"
+        >
+          <span class="icon">❓</span>
+          <span class="text">Creación Preguntas</span>
+        </a> -->
+      </div>
+    </div>
+
+    <!-- Gestor Hoja de Vida menu with submenu -->
+    <div class="menu-group" *ngIf="canViewGestorHojaVida">
+      <a
+        class="menu-item d-grid"
+        title="Gestor Hoja de Vida"
+        [class.active]="activePanel === 'registroIndividual' || activePanel === 'cargaMasiva' || activePanel === 'consultaHojas' || activePanel === 'graficasHojas'"
+        [class.expanded]="gestorHojaVidaMenuExpanded"
+        (click)="toggleGestorHojaVidaMenu()"
+      >
+        <span class="icon">📋</span>
+        <span class="text" style="font-size: 1rem; text-transform: uppercase">Gestor Hoja de Vida</span>
+        <span class="submenu-arrow">{{ gestorHojaVidaMenuExpanded ? '▾' : '▸' }}</span>
+      </a>
+
+      <div class="submenu" *ngIf="gestorHojaVidaMenuExpanded">
+        <a
+          *ngIf="canViewRegistroIndividual"
+          class="submenu-item"
+          title="Registro Individual"
+          [class.active]="activePanel === 'registroIndividual'"
+          (click)="openRegistroIndividual()"
+        >
+          <span class="icon">✍️</span>
+          <span class="text">Registro Individual</span>
+        </a>
+        <a
+          *ngIf="canViewCargaMasiva"
+          class="submenu-item"
+          title="Carga Masiva"
+          [class.active]="activePanel === 'cargaMasiva'"
+          (click)="openCargaMasiva()"
+        >
+          <span class="icon">📤</span>
+          <span class="text">Carga Masiva</span>
+        </a>
+        <a
+          *ngIf="canViewConsultaHojas"
+          class="submenu-item"
+          title="Consultar aspirante"
+          [class.active]="activePanel === 'consultaHojas'"
+          (click)="openConsultaHojas()"
+        >
+          <span class="icon">🔍</span>
+          <span class="text">Consultar aspirante</span>
+        </a>
+        <a
+          *ngIf="canViewGraficas"
+          class="submenu-item"
+          title="Gráficas"
+          [class.active]="activePanel === 'graficasHojas'"
+          (click)="openGraficasHojas()"
+        >
+          <span class="icon">📊</span>
+          <span class="text">Gráficas</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="menu-section text-uppercase" *ngIf="canViewAplicaciones">Applications</div>
+    <a
+      *ngIf="canViewAplicaciones"
+      class="menu-item d-grid"
+      title="Aplicaciones"
+      [class.active]="activePanel === 'aplicaciones'"
+      (click)="openAplicaciones()"
+      role="button"
+    >
+      <span class="icon">📦</span>
+      <span class="text">Aplicaciones</span>
+    </a>
+  </nav>
+</aside>

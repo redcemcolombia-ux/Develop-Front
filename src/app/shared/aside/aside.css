@@ -1,0 +1,176 @@
+/* Collapsed sidebar styles */
+:host-context(.platform--collapsed) .brand-text {
+  display: none !important;
+}
+
+:host-context(.platform--collapsed) .menu-section {
+  display: none !important;
+}
+
+:host-context(.platform--collapsed) a.menu-item .text,
+:host-context(.platform--collapsed) a.submenu-item .text,
+:host-context(.platform--collapsed) a.menu-item .submenu-arrow {
+  display: none !important;
+}
+
+:host-context(.platform--collapsed) .submenu {
+  display: none !important;
+}
+
+/* Menu group for items with submenu */
+.menu-group {
+  position: relative;
+}
+
+/* Submenu arrow indicator */
+.submenu-arrow {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  transition: transform 0.3s ease;
+  color: #ffffff !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  font-style: normal;
+  text-decoration: none;
+}
+
+.menu-item .submenu-arrow {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.menu-item.active .submenu-arrow {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.menu-item:hover .submenu-arrow {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.menu-item.expanded .submenu-arrow {
+  transform: translateY(-50%) rotate(0deg);
+}
+
+/* Submenu container */
+.submenu {
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 300px;
+  }
+}
+
+/* Submenu items */
+.submenu-item {
+  display: block;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.submenu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.submenu-item.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+}
+
+.submenu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: currentColor;
+  border-radius: 50%;
+}
+
+.submenu-text {
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+/* Dark mode adjustments */
+.theme-dark .submenu {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .submenu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .submenu-item.active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Scrollable menu styles */
+.menu-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+}
+
+/* Custom scrollbar - Webkit (Chrome, Safari, Edge) */
+.menu-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-scrollable::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.menu-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.menu-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Firefox scrollbar */
+.menu-scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode scrollbar adjustments */
+.theme-dark .menu-scrollable::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .menu-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .menu-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.theme-dark .menu-scrollable {
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
