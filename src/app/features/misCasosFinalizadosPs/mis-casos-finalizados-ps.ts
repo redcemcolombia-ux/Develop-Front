@@ -37,8 +37,11 @@ export class MisCasosFinalizadosPs implements OnInit {
         if (resp?.error === 0) {
           const data = resp.response?.data ?? resp.response ?? resp.data ?? [];
           const allCasos = Array.isArray(data) ? data : [];
-          // Filtrar solo casos CON agenda (con TIPO_REUNION) y CON resultado de psicología cargado
-          this.casosExistentes = allCasos.filter(caso => caso.TIPO_REUNION && caso.RUTA_PSICOLOGIA);
+          // Filtrar solo casos CON agenda (con TIPO_REUNION o FECHA_HORA_CITA_PSICOLOGIA) y CON resultado de psicología cargado
+          this.casosExistentes = allCasos.filter(caso =>
+            (caso.TIPO_REUNION || caso.FECHA_HORA_CITA_PSICOLOGIA) &&
+            caso.RUTA_PSICOLOGIA?.ruta
+          );
           this.totalItems = this.casosExistentes.length;
           this.filtrar();
         } else {
