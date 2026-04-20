@@ -11,8 +11,10 @@ export interface ApiResponse<T> {
 
 export interface HojaVida {
   _id: string;
-  PKEYHOJAVIDA: string;
-  PKEYASPIRANT: string;
+  PKEYHOJAVIDA?: string;
+  PKEYASPIRANT?: string;
+  NUMERO_CURSO?: string;
+  TIPO_CURSO?: string;
   DOCUMENTO: string;
   NOMBRE: string;
   PRIMER_APELLIDO: string;
@@ -20,6 +22,8 @@ export interface HojaVida {
   EDAD: number;
   GENERO: string;
   FECH_NACIMIENTO: string;
+  DEPARTAMENTO_NACIMIENTO?: string;
+  CIUDAD_NACIMIENTO?: string;
   CORREO: string;
   TELEFONO: string;
   CELULAR: string;

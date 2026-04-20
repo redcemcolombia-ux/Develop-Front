@@ -97,7 +97,7 @@ export class Aspirante implements OnDestroy {
       codigo_inscripcion: this.aspiranteData.codigoInscripcion
     };
 
-    this.http.post<any>('${API_BASE_URL}/api/hojas-vida/por_documento', body, { headers })
+    this.http.post<any>(`${API_BASE_URL}/api/hojas-vida/por_documento`, body, { headers })
       .subscribe({
         next: (response) => {
           this.loading = false;
@@ -206,7 +206,6 @@ export class Aspirante implements OnDestroy {
       {
         title: 'Estado y Gestión',
         items: [
-          { label: 'ID del Caso', value: this.aspiranteInfo._id || this.aspiranteInfo.ID || this.aspiranteInfo.id_caso || 'No disponible' },
           { label: 'Estado', value: this.aspiranteInfo.ESTADO },
           { label: 'Estado de Notificación', value: this.aspiranteInfo.ESTADO_NOTIFICACION },
           { label: 'Regional', value: this.aspiranteInfo.REGIONAL },
@@ -239,7 +238,17 @@ export class Aspirante implements OnDestroy {
 
   // Métodos para manejar el consentimiento
   mostrarCampoConsentimiento(): boolean {
-    return this.aspiranteInfo && this.aspiranteInfo.ESTADO === 'Notificado Consentimiento';
+    if (!this.aspiranteInfo) return false;
+    // Mostrar si el estado es 'Notificado Consentimiento' O si ya tiene consentimiento recibido
+    return this.aspiranteInfo.ESTADO === 'Notificado Consentimiento' ||
+           this.tieneConsentimientoRecibido();
+  }
+
+  // Método para verificar si tiene consentimiento recibido
+  tieneConsentimientoRecibido(): boolean {
+    if (!this.aspiranteInfo) return false;
+    return this.aspiranteInfo.RUTA_NOTIFICACION_RECIBIDA &&
+           this.aspiranteInfo.RUTA_NOTIFICACION_RECIBIDA.trim() !== '';
   }
 
   // Método para verificar si hay un PDF existente para visualizar
@@ -292,6 +301,92 @@ export class Aspirante implements OnDestroy {
     return '';
   }
 
+  // Método para visualizar el consentimiento recibido
+  visualizarConsentimientoRecibido(): void {
+    const filename = this.aspiranteInfo?.RUTA_NOTIFICACION_RECIBIDA;
+
+    if (!filename || filename.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Advertencia',
+        text: 'No se encontró el archivo de consentimiento'
+      });
+      return;
+    }
+
+    this.loadingPdfExistente = true;
+    this.mostrarPdfExistente = true;
+
+    // Extraer solo el nombre del archivo si viene con ruta
+    let cleanFilename = filename;
+    if (filename.includes('/')) {
+      const parts = filename.split('/');
+      cleanFilename = parts[parts.length - 1];
+    }
+
+    const urlCompleta = `${API_BASE_URL}/api/pdf/recibida/${cleanFilename}`;
+
+    // Consumir el servicio para obtener el PDF del consentimiento (sin token)
+    this.http.get(urlCompleta, {
+      responseType: 'blob'
+    })
+    .subscribe({
+      next: (pdfBlob: Blob) => {
+        this.loadingPdfExistente = false;
+
+        // Crear URL del blob y sanitizarla
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        this.pdfExistenteUrl = this.sanitizer.bypassSecurityTrustResourceUrl(blobUrl);
+
+        // Mostrar el PDF en un modal de SweetAlert2
+        const html = `
+          <div class="pdf-viewer-modal" style="width: 100%; height: 700px;">
+            <embed src="${blobUrl}" type="application/pdf" style="width: 100%; height: 100%; border: none;">
+          </div>
+        `;
+
+        Swal.fire({
+          title: 'Consentimiento Recibido',
+          html,
+          width: '95%',
+          heightAuto: false,
+          showCloseButton: true,
+          showConfirmButton: false,
+          customClass: {
+            container: 'pdf-viewer-container',
+            htmlContainer: 'pdf-viewer-html-container'
+          },
+          didClose: () => {
+            // Limpiar el blob URL cuando se cierre el modal
+            if (blobUrl) {
+              URL.revokeObjectURL(blobUrl);
+            }
+            this.pdfExistenteUrl = null;
+            this.mostrarPdfExistente = false;
+          }
+        });
+      },
+      error: (error) => {
+        this.loadingPdfExistente = false;
+
+        let errorMessage = 'Error al cargar el consentimiento. Por favor, intente nuevamente.';
+        if (error.status === 404) {
+          errorMessage = 'El archivo de consentimiento no fue encontrado en el servidor.';
+        } else if (error.status === 500) {
+          errorMessage = 'Error en el servidor. Por favor, contacte al administrador.';
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: errorMessage
+        });
+
+        this.mostrarPdfExistente = false;
+      }
+    });
+  }
+
   // Método para visualizar el PDF existente
   visualizarPdfExistente(): void {
     const nombrePdf = this.obtenerNombrePdfExistente();
@@ -321,7 +416,7 @@ export class Aspirante implements OnDestroy {
     }
 
     // Construir la URL correcta sin duplicación de rutas
-    const urlBase = '${API_BASE_URL}/api/pdf/recibida/';
+    const urlBase = `${API_BASE_URL}/api/pdf/recibida/`;
     const urlCompleta = urlBase + nombrePdfLimpio;
 
     // Consumir el servicio para obtener el PDF
@@ -436,7 +531,7 @@ export class Aspirante implements OnDestroy {
     });
 
     // Consumir el servicio de notificación recibida
-    this.http.put<any>('${API_BASE_URL}/api/hojas-vida/notificacion/recibida', formData, { headers })
+    this.http.put<any>(`${API_BASE_URL}/api/hojas-vida/notificacion/recibida`, formData, { headers })
       .subscribe({
         next: (response) => {
           this.uploadingConsentimiento = false;

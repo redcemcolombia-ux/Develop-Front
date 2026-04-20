@@ -26,7 +26,7 @@
                 <span class="ms-2">| Empresa:</span>
                 <span class="badge bg-secondary ms-1">{{ empresa() }}</span>
                 <span class="ms-2">| Permisos:</span>
-                <span class="badge bg-info text-dark ms-1">{{ permisos() }}</span>
+                <span class="badge bg-info text-white ms-1">{{ permisos() }}</span>
               </div>
             </div>
           </div>
@@ -79,9 +79,15 @@
         </div>
       </section>
 
-      <section *ngIf="activePanel() === 'listadoIps'" class="row g-4">
+      <section *ngIf="showListadoIps()" class="row g-4">
         <div class="col-12">
-          <app-listado-ips></app-listado-ips>
+          <app-listado-ips (editarIps)="onEditarIps($event)"></app-listado-ips>
+        </div>
+      </section>
+
+      <section *ngIf="showEditarIps()" class="row g-4">
+        <div class="col-12">
+          <app-editar-ips [ips]="ipsAEditar" (volverListado)="onVolverAListadoIps()"></app-editar-ips>
         </div>
       </section>
 
@@ -100,6 +106,12 @@
       <section *ngIf="showCasosGestionados()" class="row g-4">
         <div class="col-12">
           <app-casos-gestionados></app-casos-gestionados>
+        </div>
+      </section>
+
+      <section *ngIf="showCasosAplazadosIps()" class="row g-4">
+        <div class="col-12">
+          <app-casos-aplazados-ips></app-casos-aplazados-ips>
         </div>
       </section>
 
@@ -175,6 +187,24 @@
         </div>
       </section>
 
+      <section *ngIf="showGestionarAspirante()" class="row g-4">
+        <div class="col-12">
+          <app-gestionar-aspirante></app-gestionar-aspirante>
+        </div>
+      </section>
+
+      <section *ngIf="showCasosCerrados()" class="row g-4">
+        <div class="col-12">
+          <app-casos-cerrados></app-casos-cerrados>
+        </div>
+      </section>
+
+      <section *ngIf="showCasosAplazados()" class="row g-4">
+        <div class="col-12">
+          <app-casos-aplazados></app-casos-aplazados>
+        </div>
+      </section>
+
       <section *ngIf="showGraficasHojas()" class="row g-4">
         <div class="col-12">
           <app-graficas-hojas-vida></app-graficas-hojas-vida>
@@ -187,43 +217,6 @@
         </div>
       </section>
 
-      <section
-        *ngIf="
-          activePanel() !== 'dashboard' &&
-          activePanel() !== 'registroUsuarios' &&
-          activePanel() !== 'registroIps' &&
-          activePanel() !== 'listadoIps' &&
-          activePanel() !== 'aplicaciones' &&
-          !showListadoUsuarios() &&
-          !showEditarUsuario() &&
-          !showConsultarHojasDeVida() &&
-          !showMisCasosTomados() &&
-          !showCasosGestionados() &&
-          !showInforme() &&
-          !showConsultarHojasVidaPs() &&
-          !showMisCasosTomadosPs() &&
-          !showMisCasosGestionadosPs() &&
-          !showMisCasosFinalizadosPs() &&
-          !showFormularioPs() &&
-          !showFormNotificacionPs() &&
-          !showCreacionPreguntasPs() &&
-          !showInformePs() &&
-          !showRegistroIndividual() &&
-          !showCargaMasiva() &&
-          !showConsultaHojas() &&
-          !showGraficasHojas()
-        "
-        class="row g-4"
-      >
-        <div class="col-12">
-          <div class="card platform-card">
-            <div class="card-body p-4">
-              <h3 class="mb-1">Sección</h3>
-              <div class="text-muted">{{ activePanel() }}</div>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 </div>

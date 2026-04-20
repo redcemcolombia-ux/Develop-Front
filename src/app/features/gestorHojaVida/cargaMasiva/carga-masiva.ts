@@ -92,11 +92,11 @@ export class CargaMasiva {
 
         const headers = jsonData[0] as string[];
         const expectedHeaders = [
-          'PKEYHOJAVIDA', 'PKEYASPIRANT', 'CODIPROGACAD', 'ANNOPERIACAD', 'NUMEPERIACAD',
+          'NUMERO_CURSO', 'TIPO_CURSO', 'CODIPROGACAD', 'ANNOPERIACAD', 'NUMEPERIACAD',
           'CODIGO_INSCRIPCION', 'DOCUMENTO', 'NOMBRE', 'PRIMER_APELLIDO', 'SEGUNDO_APELLIDO',
-          'EDAD', 'GENERO', 'FECH_NACIMIENTO', 'CORREO', 'TELEFONO', 'CELULAR',
-          'DIRECCION', 'CIUDAD', 'ESTADO', 'DEPARTAMENTO', 'REGIONAL',
-          'COMPLEMENTARIA_1', 'COMPLEMENTARIA_2', 'FECHA_INSCRIPCION', 'GRUP_MINO',
+          'EDAD', 'GENERO', 'FECH_NACIMIENTO', 'DEPARTAMENTO_NACIMIENTO', 'CIUDAD_NACIMIENTO',
+          'CORREO', 'TELEFONO', 'CELULAR', 'DIRECCION', 'CIUDAD', 'DEPARTAMENTO', 'REGIONAL',
+          'ESTADO', 'COMPLEMENTARIA_1', 'COMPLEMENTARIA_2', 'FECHA_INSCRIPCION', 'GRUP_MINO',
           'ESTRATO', 'TIPO_MEDIO', 'COLEGIO'
         ];
 
@@ -267,6 +267,8 @@ export class CargaMasiva {
       this.previewFilteredData = this.previewData.filter(item => {
         const data = item.data;
         return (
+          (data.NUMERO_CURSO && data.NUMERO_CURSO.toString().toLowerCase().includes(searchTerm)) ||
+          (data.TIPO_CURSO && data.TIPO_CURSO.toString().toLowerCase().includes(searchTerm)) ||
           (data.DOCUMENTO && data.DOCUMENTO.toString().toLowerCase().includes(searchTerm)) ||
           (data.NOMBRE && data.NOMBRE.toLowerCase().includes(searchTerm)) ||
           (data.PRIMER_APELLIDO && data.PRIMER_APELLIDO.toLowerCase().includes(searchTerm)) ||
@@ -342,11 +344,11 @@ export class CargaMasiva {
 
   downloadTemplate(): void {
     const headers = [
-      'PKEYHOJAVIDA', 'PKEYASPIRANT', 'CODIPROGACAD', 'ANNOPERIACAD', 'NUMEPERIACAD',
+      'NUMERO_CURSO', 'TIPO_CURSO', 'CODIPROGACAD', 'ANNOPERIACAD', 'NUMEPERIACAD',
       'CODIGO_INSCRIPCION', 'DOCUMENTO', 'NOMBRE', 'PRIMER_APELLIDO', 'SEGUNDO_APELLIDO',
-      'EDAD', 'GENERO', 'FECH_NACIMIENTO', 'CORREO', 'TELEFONO', 'CELULAR',
-      'DIRECCION', 'CIUDAD', 'ESTADO', 'DEPARTAMENTO', 'REGIONAL',
-      'COMPLEMENTARIA_1', 'COMPLEMENTARIA_2', 'FECHA_INSCRIPCION', 'GRUP_MINO',
+      'EDAD', 'GENERO', 'FECH_NACIMIENTO', 'DEPARTAMENTO_NACIMIENTO', 'CIUDAD_NACIMIENTO',
+      'CORREO', 'TELEFONO', 'CELULAR', 'DIRECCION', 'CIUDAD', 'DEPARTAMENTO', 'REGIONAL',
+      'ESTADO', 'COMPLEMENTARIA_1', 'COMPLEMENTARIA_2', 'FECHA_INSCRIPCION', 'GRUP_MINO',
       'ESTRATO', 'TIPO_MEDIO', 'COLEGIO'
     ];
 
@@ -403,7 +405,9 @@ export class CargaMasiva {
       { key: 'SEGUNDO_APELLIDO', label: '👤 Segundo Apellido' },
       { key: 'EDAD', label: '🎂 Edad' },
       { key: 'GENERO', label: '⚧ Género' },
-      { key: 'FECH_NACIMIENTO', label: '📅 Fecha de Nacimiento' }
+      { key: 'FECH_NACIMIENTO', label: '📅 Fecha de Nacimiento' },
+      { key: 'DEPARTAMENTO_NACIMIENTO', label: '🗺️ Departamento Nacimiento' },
+      { key: 'CIUDAD_NACIMIENTO', label: '🏙️ Ciudad Nacimiento' }
     ];
 
     personalFields.forEach(field => {
@@ -454,12 +458,15 @@ export class CargaMasiva {
     html += '<div class="row">';
 
     const academicFields = [
+      { key: 'NUMERO_CURSO', label: '🔢 Numero Curso' },
+      { key: 'TIPO_CURSO', label: '📚 Tipo Curso' },
       { key: 'CODIPROGACAD', label: '🎓 Programa Académico' },
       { key: 'ANNOPERIACAD', label: '📅 Año Período Académico' },
       { key: 'NUMEPERIACAD', label: '🔢 Número Período Académico' },
-      { key: 'CIUDAD', label: '🏙️ Ciudad' },
-      { key: 'DEPARTAMENTO', label: '🗺️ Departamento' },
+      { key: 'CIUDAD', label: '🏙️ Ciudad donde reside' },
+      { key: 'DEPARTAMENTO', label: '🗺️ Departamento donde reside' },
       { key: 'REGIONAL', label: '🏢 Regional' },
+      { key: 'ESTADO', label: '📊 Estado' },
       { key: 'COLEGIO', label: '🏫 Colegio' }
     ];
 
@@ -486,9 +493,8 @@ export class CargaMasiva {
     const additionalFields = [
       { key: 'CODIGO_INSCRIPCION', label: '🎫 Código de Inscripción' },
       { key: 'FECHA_INSCRIPCION', label: '📅 Fecha de Inscripción' },
-      { key: 'ESTADO', label: '📊 Estado' },
-      { key: 'ESTRATO', label: '🏘️ Estrato' },
       { key: 'GRUP_MINO', label: '👥 Grupo Minoritario' },
+      { key: 'ESTRATO', label: '🏘️ Estrato' },
       { key: 'TIPO_MEDIO', label: '📺 Tipo de Medio' },
       { key: 'COMPLEMENTARIA_1', label: '📝 Info Complementaria 1' },
       { key: 'COMPLEMENTARIA_2', label: '📝 Info Complementaria 2' }
@@ -503,31 +509,6 @@ export class CargaMasiva {
       html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
-      html += `</div>`;
-    });
-
-    html += '</div></div></div>';
-
-    // IDs del Sistema
-    html += '<div class="card mb-3 shadow">';
-    html += '<div class="card-header bg-secondary text-white"><strong>🔑 IDs del Sistema</strong></div>';
-    html += '<div class="card-body">';
-    html += '<div class="row">';
-
-    const systemFields = [
-      { key: 'PKEYHOJAVIDA', label: '🔑 ID Hoja de Vida' },
-      { key: 'PKEYASPIRANT', label: '🔑 ID Aspirante' }
-    ];
-
-    systemFields.forEach(field => {
-      const value = data[field.key] || 'N/A';
-      const hasError = errors.some((error: string) => error.toLowerCase().includes(field.key.toLowerCase().replace(/_/g, ' ')));
-      const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
-      const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
-
-      html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
-      html += `<strong class="text-muted">${field.label}:</strong><br>`;
-      html += `<span class="${colorClass}" style="font-size: 1.1em; font-family: monospace;">${value}</span>`;
       html += `</div>`;
     });
 

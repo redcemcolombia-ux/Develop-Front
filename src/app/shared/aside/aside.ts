@@ -9,11 +9,13 @@ export type AsidePanelId =
   | 'editarUsuario'
   | 'registroIps'
   | 'listadoIps'
+  | 'editarIps'
   | 'gestorIps'
   | 'ipsGestion'
   | 'consultarHojasVida'
   | 'misCasosTomados'
   | 'misCasosGestionados'
+  | 'casosAplazadosIps'
   | 'informe'
   | 'psicologiaGestion'
   | 'consultarHojasVidaPs'
@@ -30,6 +32,9 @@ export type AsidePanelId =
   | 'registroIndividual'
   | 'cargaMasiva'
   | 'consultaHojas'
+  | 'gestionarAspirante'
+  | 'casosCerrados'
+  | 'casosAplazados'
   | 'graficasHojas';
 
 @Component({
@@ -54,6 +59,7 @@ export class Aside implements OnInit {
   canViewGestorUsuarios: boolean = false;
   canViewAdminIps: boolean = false;
   canViewIpsGestion: boolean = false;
+  canViewCasosAplazadosIps: boolean = false;
   canViewPsicologiaGestion: boolean = false;
   canViewFormularioNotificacion: boolean = false;
   canViewGestorHojaVida: boolean = false;
@@ -63,6 +69,9 @@ export class Aside implements OnInit {
   canViewRegistroIndividual: boolean = false;
   canViewCargaMasiva: boolean = false;
   canViewConsultaHojas: boolean = false;
+  canViewGestionarAspirante: boolean = false;
+  canViewCasosCerrados: boolean = false;
+  canViewCasosAplazados: boolean = false;
   canViewGraficas: boolean = false;
 
   constructor(private authService: AuthService) {}
@@ -96,6 +105,7 @@ export class Aside implements OnInit {
           this.canViewGestorUsuarios = true;
           this.canViewAdminIps = true;
           this.canViewIpsGestion = true;
+          this.canViewCasosAplazadosIps = true;
           this.canViewPsicologiaGestion = true;
           this.canViewFormularioNotificacion = true;
           this.canViewGestorHojaVida = true;
@@ -103,6 +113,9 @@ export class Aside implements OnInit {
           this.canViewRegistroIndividual = true;
           this.canViewCargaMasiva = true;
           this.canViewConsultaHojas = true;
+          this.canViewGestionarAspirante = true;
+          this.canViewCasosCerrados = true;
+          this.canViewCasosAplazados = true;
           this.canViewGraficas = true;
         }
         break;
@@ -110,10 +123,14 @@ export class Aside implements OnInit {
       case 'supervisor':
         this.canViewAdminIps = true;
         this.canViewIpsGestion = true;
+        this.canViewCasosAplazadosIps = true;
         this.canViewGestorHojaVida = true;
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewGestionarAspirante = true;
+        this.canViewCasosCerrados = true;
+        this.canViewCasosAplazados = true;
         this.canViewGraficas = true;
         break;
 
@@ -135,6 +152,7 @@ export class Aside implements OnInit {
 
       case 'usuario':
         this.canViewIpsGestion = true;
+        this.canViewCasosAplazadosIps = true;
         break;
 
       case 'cliente':
@@ -142,11 +160,15 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewCasosCerrados = true;
+        this.canViewCasosAplazados = true;
         break;
 
       case 'cliente gestor':
         this.canViewGestorHojaVida = true;
         this.canViewConsultaHojas = true;
+        this.canViewCasosCerrados = true;
+        this.canViewCasosAplazados = true;
         break;
 
       case 'cliente admin':
@@ -154,11 +176,15 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewCasosCerrados = true;
+        this.canViewCasosAplazados = true;
         this.canViewGraficas = true;
         break;
 
       case 'cliente informes':
         this.canViewGestorHojaVida = true;
+        this.canViewCasosCerrados = true;
+        this.canViewCasosAplazados = true;
         this.canViewGraficas = true;
         break;
 
@@ -175,6 +201,7 @@ export class Aside implements OnInit {
     this.canViewGestorUsuarios = false;
     this.canViewAdminIps = false;
     this.canViewIpsGestion = false;
+    this.canViewCasosAplazadosIps = false;
     this.canViewPsicologiaGestion = false;
     this.canViewFormularioNotificacion = false;
     this.canViewGestorHojaVida = false;
@@ -182,6 +209,9 @@ export class Aside implements OnInit {
     this.canViewRegistroIndividual = false;
     this.canViewCargaMasiva = false;
     this.canViewConsultaHojas = false;
+    this.canViewGestionarAspirante = false;
+    this.canViewCasosCerrados = false;
+    this.canViewCasosAplazados = false;
     this.canViewGraficas = false;
   }
 
@@ -252,6 +282,12 @@ export class Aside implements OnInit {
   openMisCasosGestionados(): void {
     if (this.canViewIpsGestion) {
       this.selectPanel.emit('misCasosGestionados');
+    }
+  }
+
+  openCasosAplazadosIps(): void {
+    if (this.canViewCasosAplazadosIps) {
+      this.selectPanel.emit('casosAplazadosIps');
     }
   }
 
@@ -360,6 +396,24 @@ export class Aside implements OnInit {
   openConsultaHojas(): void {
     if (this.canViewConsultaHojas) {
       this.selectPanel.emit('consultaHojas');
+    }
+  }
+
+  openGestionarAspirante(): void {
+    if (this.canViewGestionarAspirante) {
+      this.selectPanel.emit('gestionarAspirante');
+    }
+  }
+
+  openCasosCerrados(): void {
+    if (this.canViewCasosCerrados) {
+      this.selectPanel.emit('casosCerrados');
+    }
+  }
+
+  openCasosAplazados(): void {
+    if (this.canViewCasosAplazados) {
+      this.selectPanel.emit('casosAplazados');
     }
   }
 

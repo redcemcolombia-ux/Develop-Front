@@ -89,7 +89,7 @@
       <a
         class="menu-item d-grid"
         title="IPS Gestión"
-        [class.active]="activePanel === 'consultarHojasVida' || activePanel === 'misCasosTomados' || activePanel === 'misCasosGestionados' || activePanel === 'informe'"
+        [class.active]="activePanel === 'consultarHojasVida' || activePanel === 'misCasosTomados' || activePanel === 'misCasosGestionados' || activePanel === 'casosAplazadosIps' || activePanel === 'informe'"
         [class.expanded]="ipsGestionMenuExpanded"
         (click)="toggleIpsGestionMenu()"
       >
@@ -125,6 +125,16 @@
         >
           <span class="icon">✅</span>
           <span class="text">Casos Gestionados</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Casos Aplazados"
+          [class.active]="activePanel === 'casosAplazadosIps'"
+          (click)="openCasosAplazadosIps()"
+          *ngIf="canViewCasosAplazadosIps"
+        >
+          <span class="icon">⏸</span>
+          <span class="text">Casos Aplazados</span>
         </a>
         <a
           class="submenu-item"
@@ -234,7 +244,7 @@
       <a
         class="menu-item d-grid"
         title="Gestor Hoja de Vida"
-        [class.active]="activePanel === 'registroIndividual' || activePanel === 'cargaMasiva' || activePanel === 'consultaHojas' || activePanel === 'graficasHojas'"
+        [class.active]="activePanel === 'registroIndividual' || activePanel === 'cargaMasiva' || activePanel === 'consultaHojas' || activePanel === 'gestionarAspirante' || activePanel === 'casosCerrados' || activePanel === 'casosAplazados' || activePanel === 'graficasHojas'"
         [class.expanded]="gestorHojaVidaMenuExpanded"
         (click)="toggleGestorHojaVidaMenu()"
       >
@@ -273,6 +283,36 @@
         >
           <span class="icon">🔍</span>
           <span class="text">Consultar aspirante</span>
+        </a>
+        <a
+          *ngIf="canViewGestionarAspirante"
+          class="submenu-item"
+          title="Gestionar aspirante"
+          [class.active]="activePanel === 'gestionarAspirante'"
+          (click)="openGestionarAspirante()"
+        >
+          <span class="icon">⚙️</span>
+          <span class="text">Gestionar aspirante</span>
+        </a>
+        <a
+          *ngIf="canViewCasosCerrados"
+          class="submenu-item"
+          title="Casos Cerrados"
+          [class.active]="activePanel === 'casosCerrados'"
+          (click)="openCasosCerrados()"
+        >
+          <span class="icon">✅</span>
+          <span class="text">Casos Cerrados</span>
+        </a>
+        <a
+          *ngIf="canViewCasosAplazados"
+          class="submenu-item"
+          title="Casos Aplazados"
+          [class.active]="activePanel === 'casosAplazados'"
+          (click)="openCasosAplazados()"
+        >
+          <span class="icon">⏸</span>
+          <span class="text">Casos Aplazados</span>
         </a>
         <a
           *ngIf="canViewGraficas"

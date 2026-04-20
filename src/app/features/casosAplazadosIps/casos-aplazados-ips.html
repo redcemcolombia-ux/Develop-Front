@@ -3,7 +3,7 @@
     class="card-header platform-card__header platform-card__header--primary"
     style="background-color: #0d6efd; color: #ffffff"
   >
-    <h5 class="mb-0">Mis Casos Tomados</h5>
+    <h5 class="mb-0">Casos Aplazados</h5>
   </div>
 
   <div class="card-body p-4">
@@ -14,7 +14,7 @@
           <input
             type="text"
             class="form-control"
-            placeholder="Buscar por nombre, documento, exámenes, IPS..."
+            placeholder="Buscar por nombre, documento, ciudad..."
             [(ngModel)]="searchTerm"
             (input)="onSearchChange()"
           />
@@ -35,7 +35,7 @@
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
-      <p class="mt-2">Consultando casos tomados...</p>
+      <p class="mt-2">Consultando casos aplazados...</p>
     </div>
 
     <div *ngIf="!isLoading && filtrados.length > 0">
@@ -46,8 +46,9 @@
               <th>Documento</th>
               <th>Nombre Completo</th>
               <th class="d-none">Exámenes</th>
-              <th class="d-none d-lg-table-cell">Celular</th>
+              <th class="d-none">Celular</th>
               <th>Ciudad</th>
+              <th class="text-center">Estado de Cierre</th>
               <th class="text-center">Acciones</th>
             </tr>
           </thead>
@@ -68,8 +69,13 @@
                   {{ caso.EXAMENES ? (caso.EXAMENES | titlecase) : 'N/A' }}
                 </span>
               </td>
-              <td class="d-none d-lg-table-cell">{{ caso.CELULAR }}</td>
+              <td class="d-none">{{ caso.CELULAR }}</td>
               <td>{{ (caso.CIUDAD || '') | titlecase }}</td>
+              <td class="text-center">
+                <span class="badge bg-danger" style="font-size: 0.9em;">
+                  {{ caso.ESTADO_CIERRE || 'N/A' }}
+                </span>
+              </td>
               <!-- Columnas ocultas para búsqueda -->
               <td class="d-none">{{ caso.CORREO }}</td>
               <td class="d-none">{{ caso.TELEFONO }}</td>
@@ -85,30 +91,15 @@
               <td class="d-none">{{ caso.RECOMENDACIONES }}</td>
               <td class="d-none">{{ caso.NOMBREIPS }}</td>
               <td class="text-center">
-                <button type="button" class="btn btn-outline-primary btn-sm my-1" (click)="verDetalle(caso)">Ver</button>
-                <button
-                  type="button"
-                  class="btn btn-sm ms-1 my-1 platform-btn-text-white"
-                  [ngClass]="caso.PDF_URL ? 'btn-primary' : 'btn-warning'"
-                  (click)="cargarPDF(caso)"
-                >
-                  Examenes
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm ms-1 my-1"
-                  [ngClass]="hasBiometriaPdf(caso) ? 'btn-primary' : 'btn-success'"
-                  (click)="cargarBiometria(caso)"
-                >
-                  Biometria
-                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm me-1" (click)="verDetalle(caso)">Ver</button>
+                <button type="button" class="btn btn-outline-success btn-sm" (click)="abrirModalExamenes(caso)">Exámenes</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <nav *ngIf="totalPages > 1" aria-label="Paginación de casos tomados">
+      <nav *ngIf="totalPages > 1" aria-label="Paginación de casos aplazados">
         <ul class="pagination justify-content-center">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <button class="page-link" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
@@ -141,7 +132,7 @@
     </div>
 
     <div *ngIf="!isLoading && filtrados.length === 0" class="text-center py-4">
-      <h5 class="text-muted">No se encontraron casos tomados</h5>
+      <h5 class="text-muted">No se encontraron casos aplazados</h5>
       <p class="text-muted" *ngIf="searchTerm">
         No hay resultados para "{{ searchTerm }}"
         <br />
@@ -149,7 +140,7 @@
           Limpiar búsqueda
         </button>
       </p>
-      <p class="text-muted" *ngIf="!searchTerm">No hay casos tomados registrados</p>
+      <p class="text-muted" *ngIf="!searchTerm">No hay casos con retorno a IPS</p>
     </div>
   </div>
 </div>

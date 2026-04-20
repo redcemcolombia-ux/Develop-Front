@@ -3,6 +3,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, ElementRef, On
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
+import { forkJoin } from 'rxjs';
 
 import { AuthService } from '../../core/auth.service';
 import { ThemeService } from '../../shared/theme/theme.service';
@@ -18,6 +19,9 @@ interface Estadisticas {
   casosSinBiometria: number;
   casosCompletos: number;
   casosIncompletos: number;
+  casosAplazadosSinReGestionar: number;
+  casosAplazadosReGestionados: number;
+  totalCasosAplazados: number;
 }
 
 @Component({
@@ -67,6 +71,7 @@ export class Informe implements OnInit, AfterViewInit {
   @ViewChild('chartComparativo') chartComparativoRef?: ElementRef<HTMLCanvasElement>;
 
   casos: HojaVida[] = [];
+  casosAplazados: HojaVida[] = [];
   estadisticas: Estadisticas = {
     totalCasos: 0,
     casosConPDF: 0,
@@ -74,7 +79,10 @@ export class Informe implements OnInit, AfterViewInit {
     casosConBiometria: 0,
     casosSinBiometria: 0,
     casosCompletos: 0,
-    casosIncompletos: 0
+    casosIncompletos: 0,
+    casosAplazadosSinReGestionar: 0,
+    casosAplazadosReGestionados: 0,
+    totalCasosAplazados: 0
   };
   isLoading = false;
 
@@ -119,31 +127,35 @@ export class Informe implements OnInit, AfterViewInit {
       return;
     }
 
-    this.service.consultarCasosTomados(ipsId).subscribe({
+    // Cargar ambos servicios en paralelo
+    forkJoin({
+      casosTomados: this.service.consultarCasosTomados(ipsId),
+      casosAplazados: this.service.consultarCasosRetornoIps(ipsId)
+    }).subscribe({
       next: (resp) => {
-        if (resp.error === 0) {
-          this.casos = resp.response?.data ?? [];
-          this.calcularEstadisticas();
-          this.isLoading = false;
-          this.cdr.detectChanges();
-
-          // Crear gráficos solo si hay datos
-          if (this.estadisticas.totalCasos > 0) {
-            setTimeout(() => {
-              this.crearGraficos();
-            }, 100);
-          }
+        // Procesar casos tomados
+        if (resp.casosTomados.error === 0) {
+          this.casos = resp.casosTomados.response?.data ?? [];
         } else {
           this.casos = [];
-          this.isLoading = false;
-          this.cdr.detectChanges();
+        }
 
-          Swal.fire({
-            title: 'Información',
-            text: resp.response?.mensaje || 'No se encontraron casos',
-            icon: 'info',
-            confirmButtonText: 'Entendido'
-          });
+        // Procesar casos aplazados
+        if (resp.casosAplazados.error === 0) {
+          this.casosAplazados = resp.casosAplazados.response?.casos ?? [];
+        } else {
+          this.casosAplazados = [];
+        }
+
+        this.calcularEstadisticas();
+        this.isLoading = false;
+        this.cdr.detectChanges();
+
+        // Crear gráficos solo si hay datos
+        if (this.estadisticas.totalCasos > 0 || this.estadisticas.totalCasosAplazados > 0) {
+          setTimeout(() => {
+            this.crearGraficos();
+          }, 100);
         }
       },
       error: () => {
@@ -173,6 +185,15 @@ export class Informe implements OnInit, AfterViewInit {
       return tienePDF && tieneBio;
     }).length;
     this.estadisticas.casosIncompletos = this.estadisticas.totalCasos - this.estadisticas.casosCompletos;
+
+    // Calcular estadísticas de casos aplazados
+    this.estadisticas.totalCasosAplazados = this.casosAplazados.length;
+    this.estadisticas.casosAplazadosSinReGestionar = this.casosAplazados.filter(
+      (c) => !c.SEGUNDA_GESTION_IPS
+    ).length;
+    this.estadisticas.casosAplazadosReGestionados = this.casosAplazados.filter(
+      (c) => c.SEGUNDA_GESTION_IPS === true
+    ).length;
   }
 
   crearGraficos(): void {
@@ -427,7 +448,14 @@ export class Informe implements OnInit, AfterViewInit {
       { Indicador: 'Casos Pendientes', Cantidad: this.estadisticas.casosIncompletos },
       { Indicador: '% Casos Completos', Cantidad: `${((this.estadisticas.casosCompletos / this.estadisticas.totalCasos) * 100).toFixed(2)}%` },
       { Indicador: '% PDF Cargado', Cantidad: `${((this.estadisticas.casosConPDF / this.estadisticas.totalCasos) * 100).toFixed(2)}%` },
-      { Indicador: '% Biometría Cargada', Cantidad: `${((this.estadisticas.casosConBiometria / this.estadisticas.totalCasos) * 100).toFixed(2)}%` }
+      { Indicador: '% Biometría Cargada', Cantidad: `${((this.estadisticas.casosConBiometria / this.estadisticas.totalCasos) * 100).toFixed(2)}%` },
+      { Indicador: '', Cantidad: '' },
+      { Indicador: '--- CASOS APLAZADOS ---', Cantidad: '' },
+      { Indicador: 'Total Casos Aplazados', Cantidad: this.estadisticas.totalCasosAplazados },
+      { Indicador: 'Casos Aplazados Re-Gestionados', Cantidad: this.estadisticas.casosAplazadosReGestionados },
+      { Indicador: 'Casos Aplazados Sin Re-Gestionar', Cantidad: this.estadisticas.casosAplazadosSinReGestionar },
+      { Indicador: '% Re-Gestionados', Cantidad: `${this.porcentajeAplazadosReGestionados.toFixed(2)}%` },
+      { Indicador: '% Sin Re-Gestionar', Cantidad: `${this.porcentajeAplazadosSinReGestionar.toFixed(2)}%` }
     ];
 
     // Hoja 2: Detalle completo de casos
@@ -437,21 +465,25 @@ export class Informe implements OnInit, AfterViewInit {
       const estaCompleto = tienePDF && tieneBio;
 
       return {
-        Documento: caso.DOCUMENTO,
+        'Numero Curso': caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '',
+        'Tipo Curso': caso.TIPO_CURSO || caso.PKEYASPIRANT || '',
+        'Documento': caso.DOCUMENTO,
         'Nombre Completo': `${caso.NOMBRE} ${caso.PRIMER_APELLIDO} ${caso.SEGUNDO_APELLIDO}`,
-        Edad: caso.EDAD,
-        Género: caso.GENERO,
-        Correo: caso.CORREO,
-        Teléfono: caso.TELEFONO,
-        Celular: caso.CELULAR,
-        Ciudad: caso.CIUDAD,
-        Departamento: caso.DEPARTAMENTO,
-        Regional: caso.REGIONAL,
-        Estado: caso.ESTADO,
-        Exámenes: caso.EXAMENES || 'N/A',
+        'Edad': caso.EDAD,
+        'Género': caso.GENERO,
+        'Departamento Nacimiento': caso.DEPARTAMENTO_NACIMIENTO || '',
+        'Ciudad Nacimiento': caso.CIUDAD_NACIMIENTO || '',
+        'Correo': caso.CORREO,
+        'Teléfono': caso.TELEFONO,
+        'Celular': caso.CELULAR,
+        'Ciudad donde reside': caso.CIUDAD,
+        'Departamento donde reside': caso.DEPARTAMENTO,
+        'Regional': caso.REGIONAL,
+        'Estado': caso.ESTADO,
+        'Exámenes': caso.EXAMENES || 'N/A',
         'Fecha Cita': caso.FECHA_HORA ? new Date(caso.FECHA_HORA).toLocaleString('es-CO') : 'N/A',
-        IPS: caso.NOMBREIPS || 'N/A',
-        Recomendaciones: caso.RECOMENDACIONES || 'N/A',
+        'IPS': caso.NOMBREIPS || 'N/A',
+        'Recomendaciones': caso.RECOMENDACIONES || 'N/A',
         'PDF Cargado': tienePDF ? 'SÍ' : 'NO',
         'Biometría Cargada': tieneBio ? 'SÍ' : 'NO',
         'Estado Gestión': estaCompleto ? 'COMPLETO' : 'PENDIENTE'
@@ -464,6 +496,28 @@ export class Informe implements OnInit, AfterViewInit {
     // Hoja 4: Casos pendientes
     const casosPendientes = casosDetalle.filter((c) => c['Estado Gestión'] === 'PENDIENTE');
 
+    // Hoja 5: Casos Aplazados
+    const casosAplazadosDetalle = this.casosAplazados.map((caso) => ({
+      'Documento': caso.DOCUMENTO,
+      'Nombre Completo': `${caso.NOMBRE} ${caso.PRIMER_APELLIDO} ${caso.SEGUNDO_APELLIDO}`,
+      'Edad': caso.EDAD,
+      'Género': caso.GENERO,
+      'Ciudad': caso.CIUDAD,
+      'Estado de Cierre': caso.ESTADO_CIERRE,
+      'Tipo de Cierre': caso.TIPO_CIERRE,
+      'Fecha de Cierre': caso.FECHA_CIERRE ? new Date(caso.FECHA_CIERRE).toLocaleString('es-CO') : 'N/A',
+      'Notas de Cierre': caso.NOTAS_CIERRE || 'N/A',
+      'Re-Gestionado': caso.SEGUNDA_GESTION_IPS ? 'SÍ' : 'NO',
+      'Exámenes': caso.EXAMENES || 'N/A',
+      'IPS': caso.IPS_ID?.NOMBRE_IPS || 'N/A'
+    }));
+
+    // Hoja 6: Casos Aplazados Re-Gestionados
+    const casosAplazadosReGestionados = casosAplazadosDetalle.filter((c) => c['Re-Gestionado'] === 'SÍ');
+
+    // Hoja 7: Casos Aplazados Sin Re-Gestionar
+    const casosAplazadosSinReGestionar = casosAplazadosDetalle.filter((c) => c['Re-Gestionado'] === 'NO');
+
     // Crear el libro de Excel
     const wb = XLSX.utils.book_new();
 
@@ -472,11 +526,17 @@ export class Informe implements OnInit, AfterViewInit {
     const wsDetalle = XLSX.utils.json_to_sheet(casosDetalle);
     const wsCompletos = XLSX.utils.json_to_sheet(casosCompletos);
     const wsPendientes = XLSX.utils.json_to_sheet(casosPendientes);
+    const wsAplazados = XLSX.utils.json_to_sheet(casosAplazadosDetalle);
+    const wsAplazadosReGest = XLSX.utils.json_to_sheet(casosAplazadosReGestionados);
+    const wsAplazadosSinReGest = XLSX.utils.json_to_sheet(casosAplazadosSinReGestionar);
 
     XLSX.utils.book_append_sheet(wb, wsEstadisticas, 'Estadísticas');
     XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle Completo');
     XLSX.utils.book_append_sheet(wb, wsCompletos, 'Casos Completos');
     XLSX.utils.book_append_sheet(wb, wsPendientes, 'Casos Pendientes');
+    XLSX.utils.book_append_sheet(wb, wsAplazados, 'Casos Aplazados');
+    XLSX.utils.book_append_sheet(wb, wsAplazadosReGest, 'Aplazados Re-Gestionados');
+    XLSX.utils.book_append_sheet(wb, wsAplazadosSinReGest, 'Aplazados Sin Re-Gestión');
 
     // Descargar archivo
     const fecha = new Date().toISOString().split('T')[0];
@@ -493,6 +553,9 @@ export class Informe implements OnInit, AfterViewInit {
             <li>Detalle Completo (${casosDetalle.length} casos)</li>
             <li>Casos Completos (${casosCompletos.length} casos)</li>
             <li>Casos Pendientes (${casosPendientes.length} casos)</li>
+            <li>Casos Aplazados (${casosAplazadosDetalle.length} casos)</li>
+            <li>Aplazados Re-Gestionados (${casosAplazadosReGestionados.length} casos)</li>
+            <li>Aplazados Sin Re-Gestión (${casosAplazadosSinReGestionar.length} casos)</li>
           </ul>
         </div>
       `,
@@ -514,6 +577,16 @@ export class Informe implements OnInit, AfterViewInit {
   get porcentajeBiometria(): number {
     if (this.estadisticas.totalCasos === 0) return 0;
     return (this.estadisticas.casosConBiometria / this.estadisticas.totalCasos) * 100;
+  }
+
+  get porcentajeAplazadosReGestionados(): number {
+    if (this.estadisticas.totalCasosAplazados === 0) return 0;
+    return (this.estadisticas.casosAplazadosReGestionados / this.estadisticas.totalCasosAplazados) * 100;
+  }
+
+  get porcentajeAplazadosSinReGestionar(): number {
+    if (this.estadisticas.totalCasosAplazados === 0) return 0;
+    return (this.estadisticas.casosAplazadosSinReGestionar / this.estadisticas.totalCasosAplazados) * 100;
   }
 
   private getLoggedIpsId(): string | null {

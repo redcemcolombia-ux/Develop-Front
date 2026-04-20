@@ -71,6 +71,20 @@
           <div class="consentimiento-section mb-4">
             <h6 class="consentimiento-title">Cargar Consentimiento</h6>
 
+            <!-- Botón para visualizar consentimiento recibido -->
+            @if (tieneConsentimientoRecibido()) {
+              <div class="mb-3">
+                <button type="button" class="btn btn-danger text-white btn-sm" (click)="visualizarConsentimientoRecibido()" [disabled]="loadingPdfExistente">
+                  @if (loadingPdfExistente) {
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Cargando...
+                  } @else {
+                    📄 Ver Consentimiento Recibido
+                  }
+                </button>
+              </div>
+            }
+
             <!-- Botón para visualizar PDF existente -->
             @if (tienePdfExistente()) {
               <div class="mb-3">

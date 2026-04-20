@@ -2,17 +2,37 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import { HojaVidaService } from '../hoja-vida.service';
 import { AuthService } from '../../../core/auth.service';
 import { PsicologiaGestionService } from '../../psicologiaGestion/psicologia-gestion.service';
 
 @Component({
-  selector: 'app-consulta-hojas-vida',
+  selector: 'app-casos-aplazados',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './consulta-hojas-vida.html'
+  templateUrl: './casos-aplazados.html',
+  styles: [`
+    .platform-card__header.casos-aplazados__header {
+      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+      color: #fff;
+    }
+
+    .casos-aplazados__export-button {
+      background-color: #198754;
+      border-color: #198754;
+      color: #fff;
+    }
+
+    .casos-aplazados__export-button:hover,
+    .casos-aplazados__export-button:focus {
+      background-color: #157347;
+      border-color: #146c43;
+      color: #fff;
+    }
+  `]
 })
-export class ConsultaHojasVida implements OnInit {
+export class CasosAplazados implements OnInit {
   private readonly hojaVidaService = inject(HojaVidaService);
   private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -36,7 +56,6 @@ export class ConsultaHojasVida implements OnInit {
     const userInfo = this.authService.getUserInfo();
     if (userInfo && userInfo.perfil) {
       const perfil = userInfo.perfil.toLowerCase();
-      // Solo Cliente NO puede ver PDFs
       this.canViewPDFs = perfil !== 'cliente';
     }
   }
@@ -48,7 +67,13 @@ export class ConsultaHojasVida implements OnInit {
     this.hojaVidaService.consultarHojasVida().subscribe({
       next: (response) => {
         if (response.error === 0 || response.error === '0') {
-          this.hojasVidaExistentes = response.response?.data || response.data || response.response || [];
+          const todasLasHojas = response.response?.data || response.data || response.response || [];
+
+          // Filtrar solo casos aplazados
+          this.hojasVidaExistentes = todasLasHojas.filter((hoja: any) => {
+            return this.esCasoAplazado(hoja);
+          });
+
           this.totalItems = this.hojasVidaExistentes.length;
           this.filtrarHojasVida();
 
@@ -59,7 +84,7 @@ export class ConsultaHojasVida implements OnInit {
             Swal.fire({
               icon: 'info',
               title: 'Sin datos',
-              text: 'No se encontraron hojas de vida registradas'
+              text: 'No se encontraron casos aplazados'
             });
           }
         } else {
@@ -97,6 +122,30 @@ export class ConsultaHojasVida implements OnInit {
     });
   }
 
+  private esCasoAplazado(hoja: any): boolean {
+    // Verificar que tenga los 3 PDFs
+    let pdfsCount = 0;
+
+    if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
+      pdfsCount++;
+    }
+
+    if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta !== null && hoja.RUTA_BIOMETRIA.ruta !== undefined) {
+      pdfsCount++;
+    }
+
+    if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'string' && hoja.RUTA_PSICOLOGIA.trim() !== '') {
+      pdfsCount++;
+    } else if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'object' && hoja.RUTA_PSICOLOGIA.ruta !== null && hoja.RUTA_PSICOLOGIA.ruta !== undefined) {
+      pdfsCount++;
+    }
+
+    // Debe tener los 3 PDFs y ESTADO_CIERRE debe ser "Aplazado"
+    return pdfsCount === 3 &&
+           hoja.ESTADO_CIERRE &&
+           hoja.ESTADO_CIERRE === 'Aplazado';
+  }
+
   filtrarHojasVida(): void {
     if (!this.searchTerm.trim()) {
       this.hojasVidaFiltradas = [...this.hojasVidaExistentes];
@@ -109,22 +158,9 @@ export class ConsultaHojasVida implements OnInit {
         hoja.CORREO?.toLowerCase().includes(term) ||
         hoja.CIUDAD?.toLowerCase().includes(term) ||
         this.getIpsNombre(hoja).toLowerCase().includes(term) ||
-        this.getEstadoCarga(hoja).toLowerCase().includes(term)
+        hoja.NOTAS_CIERRE?.toLowerCase().includes(term)
       );
     }
-    // Ordenar por estado: Completado -> En proceso -> Sin Gestion
-    this.hojasVidaFiltradas.sort((a, b) => {
-      const estadoA = this.getEstadoCarga(a);
-      const estadoB = this.getEstadoCarga(b);
-
-      const prioridad: { [key: string]: number } = {
-        'Completado': 1,
-        'En proceso': 2,
-        'Sin Gestion': 3
-      };
-
-      return (prioridad[estadoA] || 4) - (prioridad[estadoB] || 4);
-    });
     this.currentPage = 1;
   }
 
@@ -165,17 +201,11 @@ export class ConsultaHojasVida implements OnInit {
   getBadgeClass(estado: string): string {
     if (!estado) return 'bg-secondary';
 
-    const estadoNormalizado = estado.toString().trim().toUpperCase();
+    const estadoNormalizado = estado.toString().trim();
 
     switch (estadoNormalizado) {
-      case 'ACTIVO':
-        return 'bg-success';
-      case 'PENDIENTE':
-        return 'bg-warning';
-      case 'RECHAZADO':
-        return 'bg-danger';
-      case 'ADMITIDO':
-        return 'bg-info';
+      case 'Aplazado':
+        return 'bg-primary';
       default:
         return 'bg-secondary';
     }
@@ -186,71 +216,54 @@ export class ConsultaHojasVida implements OnInit {
     return nombre && nombre.trim().length > 0 ? nombre : 'SIN IPS';
   }
 
-  getIpsShort(hoja: any): string {
-    const nombre = this.getIpsNombre(hoja);
-    if (nombre === 'SIN IPS') return 'SIN';
-    const base = nombre.replace(/\s+/g, '').toUpperCase();
-    return base.slice(0, 3);
-  }
-
-  getIpsBadgeClass(hoja: any): string {
-    const nombre = hoja?.IPS?.NOMBRE_IPS || hoja?.IPS_ID?.NOMBRE_IPS || '';
-    return nombre && nombre.trim().length > 0 ? 'bg-secondary' : 'bg-danger';
-  }
-
-  getEstadoCarga(hoja: any): string {
-    let pdfsCount = 0;
-
-    // Verificar PDF de exámenes
-    if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
-      pdfsCount++;
-    }
-
-    // Verificar PDF de biometría
-    if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta !== null && hoja.RUTA_BIOMETRIA.ruta !== undefined) {
-      pdfsCount++;
-    }
-
-    // Verificar PDF de psicología
-    if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'string' && hoja.RUTA_PSICOLOGIA.trim() !== '') {
-      pdfsCount++;
-    } else if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'object' && hoja.RUTA_PSICOLOGIA.ruta !== null && hoja.RUTA_PSICOLOGIA.ruta !== undefined) {
-      pdfsCount++;
-    }
-
-    if (pdfsCount === 3) {
-      return 'Completado';
-    } else if (pdfsCount > 0) {
-      return 'En proceso';
-    } else {
-      return 'Sin Gestion';
-    }
-  }
-
-  getEstadoBadgeClass(hoja: any): string {
-    const estado = this.getEstadoCarga(hoja);
-
-    switch (estado) {
-      case 'Completado':
-        return 'bg-success';
-      case 'En proceso':
-        return 'bg-primary';
-      case 'Sin Gestion':
-        return 'bg-danger';
-      default:
-        return 'bg-danger';
-    }
+  capitalize(texto: string): string {
+    if (!texto) return '';
+    return texto
+      .toLowerCase()
+      .split(' ')
+      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+      .join(' ');
   }
 
   verDetalleHoja(hoja: any): void {
     let html = '<div class="text-start" style="font-family: Arial, sans-serif;">';
 
-    // Header con estado
+    // Header con estado de cierre
     html += `<div class="d-flex align-items-center mb-3">`;
-    html += `<h5 class="mb-0 me-3">Detalle de Hoja de Vida</h5>`;
-    const statusBadge = this.getBadgeClass(hoja.ESTADO);
-    html += `<span class="badge ${statusBadge}"><span class="me-1">●</span>${hoja.ESTADO || 'Sin Gestión'}</span>`;
+    html += `<h5 class="mb-0 me-3">Detalle de Caso Aplazado</h5>`;
+    const statusBadge = this.getBadgeClass(hoja.ESTADO_CIERRE);
+    html += `<span class="badge ${statusBadge}"><span class="me-1">●</span>${hoja.ESTADO_CIERRE || 'Sin Estado'}</span>`;
     html += `</div>`;
+
+    // Información de Cierre
+    html += '<div class="card mb-3 shadow">';
+    html += '<div class="card-header bg-warning text-dark"><strong>⏸ Información de Aplazamiento</strong></div>';
+    html += '<div class="card-body">';
+    html += '<div class="row">';
+
+    html += `<div class="col-md-6 mb-2 p-2">`;
+    html += `<strong class="text-muted">Estado de Cierre:</strong><br>`;
+    html += `<span class="badge ${statusBadge}">${hoja.ESTADO_CIERRE || 'N/A'}</span>`;
+    html += `</div>`;
+
+    html += `<div class="col-md-6 mb-2 p-2">`;
+    html += `<strong class="text-muted">Tipo de Cierre:</strong><br>`;
+    html += `<span class="text-dark" style="font-size: 1.1em;">${hoja.TIPO_CIERRE || 'N/A'}</span>`;
+    html += `</div>`;
+
+    html += `<div class="col-md-6 mb-2 p-2">`;
+    html += `<strong class="text-muted">Fecha de Cierre:</strong><br>`;
+    html += `<span class="text-dark" style="font-size: 1.1em;">${this.formatearFecha(hoja.FECHA_CIERRE)}</span>`;
+    html += `</div>`;
+
+    if (hoja.NOTAS_CIERRE && hoja.NOTAS_CIERRE !== 'Na') {
+      html += `<div class="col-12 mb-2 p-2">`;
+      html += `<strong class="text-muted">Notas de Cierre:</strong><br>`;
+      html += `<div class="alert alert-warning mt-2" style="font-size: 1em;">${hoja.NOTAS_CIERRE}</div>`;
+      html += `</div>`;
+    }
+
+    html += '</div></div></div>';
 
     // Información Personal
     html += '<div class="card mb-3 shadow">';
@@ -271,8 +284,8 @@ export class ConsultaHojasVida implements OnInit {
     ];
 
     personalFields.forEach(field => {
-      const value = hoja[field.key] || 'Sin Gestión';
-      html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+      const value = hoja[field.key] || 'N/A';
+      html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
       html += `</div>`;
@@ -294,8 +307,8 @@ export class ConsultaHojasVida implements OnInit {
     ];
 
     contactFields.forEach(field => {
-      const value = hoja[field.key] || 'Sin Gestión';
-      html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+      const value = hoja[field.key] || 'N/A';
+      html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
       html += `</div>`;
@@ -322,8 +335,8 @@ export class ConsultaHojasVida implements OnInit {
     ];
 
     academicFields.forEach(field => {
-      const value = hoja[field.key] || 'Sin Gestión';
-      html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+      const value = hoja[field.key] || 'N/A';
+      html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
       html += `</div>`;
@@ -348,8 +361,8 @@ export class ConsultaHojasVida implements OnInit {
     ];
 
     additionalFields.forEach(field => {
-      const value = hoja[field.key] || 'Sin Gestión';
-      html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+      const value = hoja[field.key] || 'N/A';
+      html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
       html += `</div>`;
@@ -370,22 +383,22 @@ export class ConsultaHojasVida implements OnInit {
     ];
 
     medicalFields.forEach(field => {
-      let value = hoja[field.key] || 'Sin Gestión';
+      let value = hoja[field.key] || 'N/A';
       if (field.key === 'NOMBREIPS') {
         value = this.getIpsNombre(hoja);
       }
-      if (field.key === 'FECHA_HORA' && value !== 'Sin Gestión') {
+      if (field.key === 'FECHA_HORA' && value !== 'N/A') {
         value = this.formatearFecha(value);
       }
       const textClass = value === 'SIN IPS' ? 'text-danger' : 'text-dark';
-      html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+      html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="${textClass}" style="font-size: 1.1em;">${value}</span>`;
       html += `</div>`;
     });
 
     if (hoja.RECOMENDACIONES) {
-      html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
+      html += `<div class="col-12 mb-2 p-2">`;
       html += `<strong class="text-muted">💊 Recomendaciones:</strong><br>`;
       html += `<div class="alert alert-info mt-2" style="font-size: 1.1em;">${hoja.RECOMENDACIONES}</div>`;
       html += `</div>`;
@@ -407,18 +420,18 @@ export class ConsultaHojasVida implements OnInit {
     ];
 
     systemFields.forEach(field => {
-      let value = hoja[field.key] || 'Sin Gestión';
-      if (field.isDate && value !== 'Sin Gestión') {
+      let value = hoja[field.key] || 'N/A';
+      if (field.isDate && value !== 'N/A') {
         value = this.formatearFecha(value);
       }
-      html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+      html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
       html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
       html += `</div>`;
     });
 
     if (hoja.DETALLE) {
-      html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
+      html += `<div class="col-12 mb-2 p-2">`;
       html += `<strong class="text-muted">📋 Detalle de Procesamiento:</strong><br>`;
       html += `<div class="alert alert-secondary mt-2" style="font-size: 0.9em; font-family: monospace;">${hoja.DETALLE}</div>`;
       html += `</div>`;
@@ -426,9 +439,8 @@ export class ConsultaHojasVida implements OnInit {
 
     html += '</div></div></div>';
 
-    // Secciones de PDFs (solo para perfiles con permiso y si existen los archivos)
+    // Secciones de PDFs
     if (this.canViewPDFs) {
-      // Sección de PDF Historial Clínico
       if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
         html += '<div class="card mb-3 shadow">';
         html += '<div class="card-header bg-info text-white">';
@@ -440,7 +452,6 @@ export class ConsultaHojasVida implements OnInit {
         html += '</div></div>';
       }
 
-      // Sección de Biometría
       if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta !== null && hoja.RUTA_BIOMETRIA.ruta !== undefined) {
         html += '<div class="card mb-3 shadow">';
         html += '<div class="card-header bg-warning text-dark">';
@@ -452,7 +463,6 @@ export class ConsultaHojasVida implements OnInit {
         html += '</div></div>';
       }
 
-      // Sección de Consentimiento
       if (hoja.RUTA_NOTIFICACION_RECIBIDA && hoja.RUTA_NOTIFICACION_RECIBIDA.trim() !== '') {
         html += '<div class="card mb-3 shadow">';
         html += '<div class="card-header bg-danger text-white">';
@@ -464,7 +474,6 @@ export class ConsultaHojasVida implements OnInit {
         html += '</div></div>';
       }
 
-      // Sección de Resultados Entrevista Psicología
       const tienePsicologia = hoja.RUTA_PSICOLOGIA &&
         ((typeof hoja.RUTA_PSICOLOGIA === 'string' && hoja.RUTA_PSICOLOGIA.trim() !== '') ||
          (typeof hoja.RUTA_PSICOLOGIA === 'object' && hoja.RUTA_PSICOLOGIA.ruta !== null && hoja.RUTA_PSICOLOGIA.ruta !== undefined));
@@ -521,15 +530,6 @@ export class ConsultaHojasVida implements OnInit {
     });
   }
 
-  capitalize(texto: string): string {
-    if (!texto) return '';
-    return texto
-      .toLowerCase()
-      .split(' ')
-      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
-      .join(' ');
-  }
-
   verPDF(pdfUrl: string): void {
     const filename = pdfUrl.split('/').pop();
 
@@ -555,7 +555,6 @@ export class ConsultaHojasVida implements OnInit {
     this.hojaVidaService.obtenerPDF(filename).subscribe({
       next: (pdfBlob: Blob) => {
         const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-
         Swal.close();
 
         const pdfHtml = `
@@ -647,7 +646,6 @@ export class ConsultaHojasVida implements OnInit {
       return;
     }
 
-    // Extraer solo el nombre del archivo si viene con ruta
     if (filename.includes('/')) {
       const parts = filename.split('/');
       filename = parts[parts.length - 1];
@@ -688,8 +686,6 @@ export class ConsultaHojasVida implements OnInit {
         let errorMessage = 'No se pudo cargar el PDF del consentimiento';
         if (error.status === 404) {
           errorMessage = 'El archivo de consentimiento no fue encontrado en el servidor.';
-        } else if (error.status === 500) {
-          errorMessage = 'Error en el servidor. Por favor, contacte al administrador.';
         }
         Swal.fire({ title: 'Error', text: errorMessage, icon: 'error' });
       }
@@ -742,6 +738,92 @@ export class ConsultaHojasVida implements OnInit {
         Swal.close();
         Swal.fire({ title: 'Error', text: 'No se pudo cargar el PDF de psicología', icon: 'error' });
       }
+    });
+  }
+
+  exportarAExcel(): void {
+    if (this.hojasVidaFiltradas.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sin datos',
+        text: 'No hay datos para exportar'
+      });
+      return;
+    }
+
+    const datosExcel = this.hojasVidaFiltradas.map(hoja => ({
+      // Información de Aplazamiento
+      'Estado Cierre': hoja.ESTADO_CIERRE || '',
+      'Tipo Cierre': hoja.TIPO_CIERRE || '',
+      'Notas Cierre': hoja.NOTAS_CIERRE || '',
+      'Fecha Cierre': this.formatearFecha(hoja.FECHA_CIERRE || ''),
+
+      // Información Personal
+      'Documento': hoja.DOCUMENTO || '',
+      'Nombre': this.capitalize(hoja.NOMBRE || ''),
+      'Primer Apellido': this.capitalize(hoja.PRIMER_APELLIDO || ''),
+      'Segundo Apellido': this.capitalize(hoja.SEGUNDO_APELLIDO || ''),
+      'Edad': hoja.EDAD || '',
+      'Género': hoja.GENERO || '',
+      'Fecha Nacimiento': hoja.FECH_NACIMIENTO || '',
+      'Departamento Nacimiento': hoja.DEPARTAMENTO_NACIMIENTO || '',
+      'Ciudad Nacimiento': hoja.CIUDAD_NACIMIENTO || '',
+
+      // Información de Contacto
+      'Correo': hoja.CORREO?.toLowerCase() || '',
+      'Teléfono': hoja.TELEFONO || '',
+      'Celular': hoja.CELULAR || '',
+      'Dirección': hoja.DIRECCION || '',
+
+      // Información Académica y Ubicación
+      'Número Curso': hoja.NUMERO_CURSO || '',
+      'Tipo Curso': hoja.TIPO_CURSO || '',
+      'Código Programa Académico': hoja.CODIPROGACAD || '',
+      'Año Período Académico': hoja.ANNOPERIACAD || '',
+      'Número Período Académico': hoja.NUMEPERIACAD || '',
+      'Ciudad': this.capitalize(hoja.CIUDAD || ''),
+      'Departamento': hoja.DEPARTAMENTO || '',
+      'Regional': hoja.REGIONAL || '',
+      'Colegio': hoja.COLEGIO || '',
+
+      // Información Adicional
+      'Código Inscripción': hoja.CODIGO_INSCRIPCION || '',
+      'Fecha Inscripción': hoja.FECHA_INSCRIPCION || '',
+      'Estrato': hoja.ESTRATO || '',
+      'Grupo Minoritario': hoja.GRUP_MINO || '',
+      'Tipo Medio': hoja.TIPO_MEDIO || '',
+      'Complementaria 1': hoja.COMPLEMENTARIA_1 || '',
+      'Complementaria 2': hoja.COMPLEMENTARIA_2 || '',
+
+      // Información Médica
+      'Exámenes': hoja.EXAMENES || '',
+      'Fecha y Hora Examen': this.formatearFecha(hoja.FECHA_HORA || ''),
+      'IPS': this.getIpsNombre(hoja),
+      'Recomendaciones': hoja.RECOMENDACIONES || '',
+
+      // Información del Sistema
+      'Fecha Creación': this.formatearFecha(hoja.createdAt || ''),
+      'Última Actualización': this.formatearFecha(hoja.updatedAt || ''),
+      'Estado Notificación': hoja.ESTADO_NOTIFICACION || '',
+      'Psicólogo': hoja.USUARIO_SIC || '',
+      'Detalle': hoja.DETALLE || ''
+    }));
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datosExcel);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Casos Aplazados');
+
+    const fecha = new Date().toISOString().split('T')[0];
+    const nombreArchivo = `Casos_Aplazados_${fecha}.xlsx`;
+
+    XLSX.writeFile(wb, nombreArchivo);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Exportación exitosa',
+      text: `Se han exportado ${datosExcel.length} registros`,
+      timer: 2000,
+      showConfirmButton: false
     });
   }
 }

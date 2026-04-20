@@ -9,12 +9,12 @@ import { AuthService } from '../../core/auth.service';
 import { HojaVida, MisCasosService } from '../misCasos/mis-casos.service';
 
 @Component({
-  selector: 'app-casos-gestionados',
+  selector: 'app-casos-aplazados-ips',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
-  templateUrl: './casos-gestionados.html'
+  templateUrl: './casos-aplazados-ips.html'
 })
-export class CasosGestionados implements OnInit {
+export class CasosAplazadosIps implements OnInit {
   private readonly service = inject(MisCasosService);
   private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -51,10 +51,14 @@ export class CasosGestionados implements OnInit {
       return;
     }
 
-    this.service.consultarCasosTomados(ipsId).subscribe({
+    this.service.consultarCasosRetornoIps(ipsId).subscribe({
       next: (resp) => {
         if (resp.error === 0) {
-          this.casos = resp.response?.data ?? [];
+          // Filtrar casos que NO tengan SEGUNDA_GESTION_IPS en true
+          const casosSinSegundaGestion = (resp.response?.casos ?? []).filter(
+            (caso) => !caso.SEGUNDA_GESTION_IPS
+          );
+          this.casos = casosSinSegundaGestion;
           this.totalItems = this.casos.length;
           this.filtrar();
           this.isLoading = false;
@@ -63,7 +67,7 @@ export class CasosGestionados implements OnInit {
           if (showSuccessMessage) {
             Swal.fire({
               title: '¡Éxito!',
-              text: resp.response?.mensaje || 'Casos gestionados consultados exitosamente',
+              text: resp.response?.mensaje || 'Casos aplazados consultados exitosamente',
               icon: 'success',
               timer: 2000,
               showConfirmButton: false
@@ -78,7 +82,7 @@ export class CasosGestionados implements OnInit {
 
           Swal.fire({
             title: 'Información',
-            text: resp.response?.mensaje || 'No se encontraron casos gestionados',
+            text: resp.response?.mensaje || 'No se encontraron casos aplazados',
             icon: 'info',
             confirmButtonText: 'Entendido'
           });
@@ -104,18 +108,11 @@ export class CasosGestionados implements OnInit {
       return;
     }
 
-    // Filtrar solo casos que tengan AMBOS documentos cargados (PDF Y Biometría)
-    const casosConAmbosDocumentos = this.casos.filter((c) => {
-      const tienePDF = c.PDF_URL && c.PDF_URL.trim() !== '';
-      const tieneBiometria = c.RUTA_BIOMETRIA && c.RUTA_BIOMETRIA.ruta && c.RUTA_BIOMETRIA.ruta.trim() !== '';
-      return tienePDF && tieneBiometria;
-    });
-
     if (!this.searchTerm.trim()) {
-      this.filtrados = [...casosConAmbosDocumentos];
+      this.filtrados = [...this.casos];
     } else {
       const t = this.searchTerm.toLowerCase();
-      this.filtrados = casosConAmbosDocumentos.filter(
+      this.filtrados = this.casos.filter(
         (c) =>
           c.NOMBRE?.toLowerCase().includes(t) ||
           c.PRIMER_APELLIDO?.toLowerCase().includes(t) ||
@@ -293,8 +290,38 @@ export class CasosGestionados implements OnInit {
 
     html += '</div></div></div>';
 
+    // Información de la IPS
+    if (caso.IPS_ID) {
+      html += '<div class="card mb-3">';
+      html += '<div class="card-header bg-success text-white">';
+      html += '<h6 class="mb-0">Información de la IPS</h6>';
+      html += '</div>';
+      html += '<div class="card-body">';
+      html += '<div class="row">';
+
+      const ipsFields = [
+        { label: 'Nombre IPS', value: caso.IPS_ID.NOMBRE_IPS },
+        { label: 'NIT', value: caso.IPS_ID.NIT },
+        { label: 'Teléfono', value: caso.IPS_ID.TELEFONO },
+        { label: 'Correo', value: caso.IPS_ID.CORREO },
+        { label: 'Dirección', value: caso.IPS_ID.DIRECCION },
+        { label: 'Ciudad', value: caso.IPS_ID.CIUDAD },
+        { label: 'Departamento', value: caso.IPS_ID.DEPARTAMENTO },
+        { label: 'Regional', value: caso.IPS_ID.REGIONAL }
+      ];
+
+      ipsFields.forEach((field) => {
+        html += `<div class="col-md-6 mb-2 p-2">`;
+        html += `<strong class="text-muted">${field.label}:</strong><br>`;
+        html += `<span class="text-dark" style="font-size: 1.1em;">${field.value || 'N/A'}</span>`;
+        html += `</div>`;
+      });
+
+      html += '</div></div></div>';
+    }
+
     // Información Médica
-    if (caso.EXAMENES || caso.FECHA_HORA || caso.RECOMENDACIONES || caso.NOMBREIPS) {
+    if (caso.EXAMENES || caso.FECHA_HORA || caso.RECOMENDACIONES) {
       html += '<div class="card mb-3">';
       html += '<div class="card-header bg-success text-white">';
       html += '<h6 class="mb-0">Información Médica</h6>';
@@ -304,8 +331,7 @@ export class CasosGestionados implements OnInit {
 
       const medicalFields = [
         { label: 'Exámenes', value: caso.EXAMENES },
-        { label: 'Fecha y Hora', value: this.formatearFechaHora(caso.FECHA_HORA) },
-        { label: 'IPS', value: caso.NOMBREIPS }
+        { label: 'Fecha y Hora Cita', value: this.formatearFechaHora(caso.FECHA_HORA) }
       ];
 
       medicalFields.forEach((field) => {
@@ -327,20 +353,121 @@ export class CasosGestionados implements OnInit {
       html += '</div></div></div>';
     }
 
-    // Documento PDF
-    if (caso.PDF_URL) {
+    // Información de Cita de Psicología
+    if (caso.FECHA_HORA_CITA_PSICOLOGIA || caso.TIPO_REUNION || caso.DETALLE_REUNION) {
       html += '<div class="card mb-3">';
-      html += '<div class="card-header bg-info text-white">';
-      html += '<h6 class="mb-0">Examenes</h6>';
+      html += '<div class="card-header bg-primary text-white">';
+      html += '<h6 class="mb-0">Información de Cita de Psicología</h6>';
       html += '</div>';
-      html += '<div class="card-body text-center">';
-      html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-success">Cargado</span></p>`;
-      html += '<button id="verPdfBtn" class="btn btn-primary">Ver Examenes</button>';
-      html += '</div></div>';
+      html += '<div class="card-body">';
+      html += '<div class="row">';
+
+      const psicologiaFields = [
+        { label: 'Fecha y Hora Cita', value: this.formatearFechaHora(caso.FECHA_HORA_CITA_PSICOLOGIA) },
+        { label: 'Tipo de Reunión', value: caso.TIPO_REUNION },
+        { label: 'Detalle de Reunión', value: caso.DETALLE_REUNION }
+      ];
+
+      psicologiaFields.forEach((field) => {
+        if (field.value && field.value !== 'N/A') {
+          html += `<div class="col-md-6 mb-2 p-2">`;
+          html += `<strong class="text-muted">${field.label}:</strong><br>`;
+          html += `<span class="text-dark" style="font-size: 1.1em;">${field.value}</span>`;
+          html += `</div>`;
+        }
+      });
+
+      html += '</div></div></div>';
     }
 
-    // Datos Biométricos
-    if (caso.RUTA_BIOMETRIA) {
+    // Información de Cierre
+    html += '<div class="card mb-3">';
+    html += '<div class="card-header bg-danger text-white">';
+    html += '<h6 class="mb-0">Información de Cierre</h6>';
+    html += '</div>';
+    html += '<div class="card-body">';
+    html += '<div class="row">';
+
+    const cierreFields = [
+      { label: 'Estado de Cierre', value: caso.ESTADO_CIERRE, isBadge: true },
+      { label: 'Tipo de Cierre', value: caso.TIPO_CIERRE },
+      {
+        label: 'Fecha de Cierre',
+        value: caso.FECHA_CIERRE ? new Date(caso.FECHA_CIERRE).toLocaleDateString('es-CO', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : 'N/A'
+      }
+    ];
+
+    cierreFields.forEach((field) => {
+      html += `<div class="col-md-6 mb-2 p-2">`;
+      html += `<strong class="text-muted">${field.label}:</strong><br>`;
+      if (field.isBadge) {
+        html += `<span class="badge bg-danger text-white" style="font-size: 1em;">${field.value || 'N/A'}</span>`;
+      } else {
+        html += `<span class="text-dark" style="font-size: 1.1em;">${field.value || 'N/A'}</span>`;
+      }
+      html += `</div>`;
+    });
+
+    if (caso.NOTAS_CIERRE) {
+      html += `<div class="col-12 mb-2 p-2">`;
+      html += `<strong class="text-muted">Notas de Cierre:</strong><br>`;
+      html += `<div class="alert alert-danger mt-2" style="font-size: 1.1em; color: white; background-color: #dc3545;">${caso.NOTAS_CIERRE}</div>`;
+      html += `</div>`;
+    }
+
+    html += '</div></div></div>';
+
+    // Estados de Notificación
+    if (caso.ESTADO_NOTIFICACION || caso.H_ESTADO_NOTIFICACION_CONSENTIMIENTO) {
+      html += '<div class="card mb-3">';
+      html += '<div class="card-header bg-info text-white">';
+      html += '<h6 class="mb-0">Estados de Notificación</h6>';
+      html += '</div>';
+      html += '<div class="card-body">';
+      html += '<div class="row">';
+
+      const notificationFields = [
+        { label: 'Estado Notificación', value: caso.ESTADO_NOTIFICACION },
+        { label: 'Estado Notificación Consentimiento', value: caso.H_ESTADO_NOTIFICACION_CONSENTIMIENTO }
+      ];
+
+      notificationFields.forEach((field) => {
+        if (field.value) {
+          html += `<div class="col-md-6 mb-2 p-2">`;
+          html += `<strong class="text-muted">${field.label}:</strong><br>`;
+          html += `<span class="badge bg-info" style="font-size: 1em;">${field.value}</span>`;
+          html += `</div>`;
+        }
+      });
+
+      html += '</div></div></div>';
+    }
+
+    // Sección de Exámenes - Carga o Visualización
+    html += '<div class="card mb-3">';
+    html += '<div class="card-header bg-info text-white">';
+    html += '<h6 class="mb-0">Examenes</h6>';
+    html += '</div>';
+    html += '<div class="card-body text-center">';
+
+    if (caso.PDF_URL && caso.PDF_URL.trim() !== '') {
+      html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-success">Cargado</span></p>`;
+      html += '<button id="verPdfBtn" class="btn btn-primary">Ver Examenes</button>';
+    } else {
+      html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-secondary">Pendiente</span></p>`;
+      html += '<button id="subirPdfBtn" class="btn btn-success">Subir Examenes</button>';
+    }
+
+    html += '</div></div>';
+
+    // Datos Biométricos - Solo visualización
+    if (caso.RUTA_BIOMETRIA && caso.RUTA_BIOMETRIA.ruta && caso.RUTA_BIOMETRIA.ruta.trim() !== '') {
       html += '<div class="card mb-3">';
       html += '<div class="card-header bg-info text-white">';
       html += '<h6 class="mb-0">Datos Biométricos</h6>';
@@ -355,26 +482,102 @@ export class CasosGestionados implements OnInit {
     html += '</div>';
 
     Swal.fire({
-      title: `Caso Gestionado - ${caso.NOMBRE} ${caso.PRIMER_APELLIDO}`,
+      title: `Caso Aplazado - ${caso.NOMBRE} ${caso.PRIMER_APELLIDO}`,
       html: html,
       width: '900px',
       showCloseButton: true,
       confirmButtonText: 'Cerrar',
       didOpen: () => {
-        if (caso.PDF_URL) {
-          const verPdfBtn = document.getElementById('verPdfBtn');
-          if (verPdfBtn) {
-            const filename = this.extraerNombreArchivo(caso.PDF_URL);
-            verPdfBtn.onclick = () => this.verPDF(filename);
-          }
+        // Botón para ver PDF
+        const verPdfBtn = document.getElementById('verPdfBtn');
+        if (verPdfBtn && caso.PDF_URL) {
+          const filename = this.extraerNombreArchivo(caso.PDF_URL);
+          verPdfBtn.onclick = () => this.verPDF(filename);
         }
 
-        if (caso.RUTA_BIOMETRIA) {
+        // Botón para subir PDF
+        const subirPdfBtn = document.getElementById('subirPdfBtn');
+        if (subirPdfBtn && (!caso.PDF_URL || caso.PDF_URL.trim() === '')) {
+          subirPdfBtn.onclick = () => this.subirPDF(caso);
+        }
+
+        // Botón para ver biometría
+        if (caso.RUTA_BIOMETRIA && caso.RUTA_BIOMETRIA.ruta && caso.RUTA_BIOMETRIA.ruta.trim() !== '') {
           const verBioBtn = document.getElementById('verBiometriaBtn');
           if (verBioBtn) {
             verBioBtn.onclick = () => this.verBiometriaPorAspirante(caso._id);
           }
         }
+      }
+    });
+  }
+
+  subirPDF(caso: HojaVida): void {
+    Swal.fire({
+      title: 'Subir Examenes',
+      html: `
+        <p>Seleccione el archivo PDF para <strong>${caso.NOMBRE} ${caso.PRIMER_APELLIDO}</strong></p>
+        <input type="file" id="pdfInput" accept="application/pdf" class="form-control">
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Subir',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const input = document.getElementById('pdfInput') as HTMLInputElement;
+        const file = input?.files?.[0];
+
+        if (!file) {
+          Swal.showValidationMessage('Debe seleccionar un archivo PDF');
+          return false;
+        }
+
+        if (file.type !== 'application/pdf') {
+          Swal.showValidationMessage('El archivo debe ser un PDF');
+          return false;
+        }
+
+        return file;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        Swal.fire({
+          title: 'Subiendo...',
+          text: 'Por favor espere',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.service.cargarPDF(caso._id, result.value).subscribe({
+          next: (resp) => {
+            if (resp.error === 0) {
+              Swal.fire({
+                title: '¡Éxito!',
+                text: 'Examenes subido correctamente',
+                icon: 'success',
+                confirmButtonText: 'Entendido'
+              }).then(() => {
+                this.consultar(false);
+              });
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: resp.response?.mensaje || 'No se pudo subir el archivo',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+              });
+            }
+          },
+          error: () => {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo subir el archivo. Verifique su conexión',
+              icon: 'error',
+              confirmButtonText: 'Entendido'
+            });
+          }
+        });
       }
     });
   }
@@ -483,11 +686,139 @@ export class CasosGestionados implements OnInit {
     });
   }
 
+  abrirModalExamenes(caso: HojaVida): void {
+    const tienePDF = caso.PDF_URL && caso.PDF_URL.trim() !== '';
+
+    if (tienePDF) {
+      // Si ya tiene PDF, mostrar opciones: Ver o Subir nuevo
+      Swal.fire({
+        title: 'Gestión de Exámenes',
+        html: `
+          <p><strong>${caso.NOMBRE} ${caso.PRIMER_APELLIDO}</strong></p>
+          <p class="text-muted">Este caso ya tiene exámenes cargados</p>
+          <div class="d-grid gap-2 mt-3">
+            <button id="verPdfBtn" class="btn btn-primary btn-lg">
+              <i class="bi bi-eye"></i> Ver Exámenes Actuales
+            </button>
+            <button id="subirNuevoPdfBtn" class="btn btn-success btn-lg">
+              <i class="bi bi-upload"></i> Subir Nuevos Exámenes
+            </button>
+          </div>
+        `,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: 'Cerrar',
+        width: '500px',
+        didOpen: () => {
+          const verPdfBtn = document.getElementById('verPdfBtn');
+          const subirNuevoPdfBtn = document.getElementById('subirNuevoPdfBtn');
+
+          if (verPdfBtn) {
+            verPdfBtn.onclick = () => {
+              Swal.close();
+              const filename = this.extraerNombreArchivo(caso.PDF_URL!);
+              this.verPDF(filename);
+            };
+          }
+
+          if (subirNuevoPdfBtn) {
+            subirNuevoPdfBtn.onclick = () => {
+              Swal.close();
+              this.subirPDFSegundaGestion(caso);
+            };
+          }
+        }
+      });
+    } else {
+      // Si no tiene PDF, ir directo a subir
+      this.subirPDFSegundaGestion(caso);
+    }
+  }
+
+  subirPDFSegundaGestion(caso: HojaVida): void {
+    Swal.fire({
+      title: 'Subir Exámenes - Segunda Gestión',
+      html: `
+        <p>Seleccione el archivo PDF de exámenes para:</p>
+        <p><strong>${caso.NOMBRE} ${caso.PRIMER_APELLIDO}</strong></p>
+        <div class="alert alert-info mt-3" role="alert">
+          <small><i class="bi bi-info-circle"></i> Este proceso marcará el caso como segunda gestión IPS</small>
+        </div>
+        <input type="file" id="pdfInput" accept="application/pdf" class="form-control mt-3">
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Subir',
+      confirmButtonColor: '#28a745',
+      cancelButtonText: 'Cancelar',
+      width: '600px',
+      preConfirm: () => {
+        const input = document.getElementById('pdfInput') as HTMLInputElement;
+        const file = input?.files?.[0];
+
+        if (!file) {
+          Swal.showValidationMessage('Debe seleccionar un archivo PDF');
+          return false;
+        }
+
+        if (file.type !== 'application/pdf') {
+          Swal.showValidationMessage('El archivo debe ser un PDF');
+          return false;
+        }
+
+        return file;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        Swal.fire({
+          title: 'Subiendo exámenes...',
+          text: 'Por favor espere',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.service.cargarPDFSegundaGestion(caso._id, result.value).subscribe({
+          next: (resp) => {
+            if (resp.error === 0) {
+              Swal.fire({
+                title: '¡Éxito!',
+                html: `
+                  <p>Exámenes subidos correctamente</p>
+                  <p class="text-success"><small>Segunda gestión IPS: Activada</small></p>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Entendido'
+              }).then(() => {
+                this.consultar(false);
+              });
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: resp.response?.mensaje || 'No se pudo subir el archivo',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+              });
+            }
+          },
+          error: () => {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo subir el archivo. Verifique su conexión',
+              icon: 'error',
+              confirmButtonText: 'Entendido'
+            });
+          }
+        });
+      }
+    });
+  }
+
   exportarExcel(): void {
     if (this.filtrados.length === 0) {
       Swal.fire({
         title: 'Sin Datos',
-        text: 'No hay casos gestionados para exportar',
+        text: 'No hay casos aplazados para exportar',
         icon: 'warning',
         confirmButtonText: 'Entendido'
       });
@@ -519,10 +850,10 @@ export class CasosGestionados implements OnInit {
 
     const ws = XLSX.utils.json_to_sheet(datosExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Casos Gestionados');
+    XLSX.utils.book_append_sheet(wb, ws, 'Casos Aplazados');
 
     const fecha = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `casos_gestionados_${fecha}.xlsx`);
+    XLSX.writeFile(wb, `casos_aplazados_ips_${fecha}.xlsx`);
 
     Swal.fire({
       title: '¡Exportación Exitosa!',

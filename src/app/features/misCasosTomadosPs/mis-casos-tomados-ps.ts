@@ -125,6 +125,8 @@ export class MisCasosTomadosPs implements OnInit {
     html += '<div class="row">';
 
     const basicFields = [
+      { label: '🔢 Numero Curso', value: caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '' },
+      { label: '📚 Tipo Curso', value: caso.TIPO_CURSO || caso.PKEYASPIRANT || '' },
       { label: '🆔 Documento', value: caso.DOCUMENTO },
       {
         label: '👤 Nombre Completo',
@@ -136,6 +138,8 @@ export class MisCasosTomadosPs implements OnInit {
         label: '📅 Fecha de Nacimiento',
         value: caso.FECH_NACIMIENTO ? new Date(caso.FECH_NACIMIENTO).toLocaleDateString('es-CO') : 'N/A'
       },
+      { label: '🗺️ Departamento Nacimiento', value: caso.DEPARTAMENTO_NACIMIENTO || '' },
+      { label: '🏙️ Ciudad Nacimiento', value: caso.CIUDAD_NACIMIENTO || '' },
       { label: '📊 Estado', value: caso.ESTADO }
     ];
 
@@ -161,8 +165,8 @@ export class MisCasosTomadosPs implements OnInit {
       { label: '📞 Teléfono', value: caso.TELEFONO },
       { label: '📱 Celular', value: caso.CELULAR },
       { label: '🏠 Dirección', value: caso.DIRECCION },
-      { label: '🏙️ Ciudad', value: caso.CIUDAD },
-      { label: '🗺️ Departamento', value: caso.DEPARTAMENTO }
+      { label: '🏙️ Ciudad donde reside', value: caso.CIUDAD },
+      { label: '🗺️ Departamento donde reside', value: caso.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
@@ -409,12 +413,20 @@ export class MisCasosTomadosPs implements OnInit {
     }
 
     const datosExportar = this.casosFiltrados.map((caso) => ({
-      Documento: caso.DOCUMENTO || '',
-      Nombre: `${caso.NOMBRE || ''} ${caso.PRIMER_APELLIDO || ''} ${caso.SEGUNDO_APELLIDO || ''}`.trim(),
-      Correo: caso.CORREO || '',
-      Teléfono: caso.TELEFONO || '',
-      Ciudad: caso.CIUDAD || '',
-      Estado: caso.ESTADO || '',
+      'Numero Curso': caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '',
+      'Tipo Curso': caso.TIPO_CURSO || caso.PKEYASPIRANT || '',
+      'Documento': caso.DOCUMENTO || '',
+      'Nombre': `${caso.NOMBRE || ''} ${caso.PRIMER_APELLIDO || ''} ${caso.SEGUNDO_APELLIDO || ''}`.trim(),
+      'Edad': caso.EDAD || '',
+      'Género': caso.GENERO || '',
+      'Departamento Nacimiento': caso.DEPARTAMENTO_NACIMIENTO || '',
+      'Ciudad Nacimiento': caso.CIUDAD_NACIMIENTO || '',
+      'Correo': caso.CORREO || '',
+      'Teléfono': caso.TELEFONO || '',
+      'Celular': caso.CELULAR || '',
+      'Ciudad donde reside': caso.CIUDAD || '',
+      'Departamento donde reside': caso.DEPARTAMENTO || '',
+      'Estado': caso.ESTADO || '',
       'Estado Notificación': caso.ESTADO_NOTIFICACION || '',
       'Tipo Reunión': caso.TIPO_REUNION || '',
       'Fecha Cita': caso.FECHA_HORA_CITA_PSICOLOGIA || ''

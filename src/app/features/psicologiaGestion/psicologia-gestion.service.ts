@@ -242,4 +242,17 @@ export class PsicologiaGestionService {
       responseType: 'blob'
     });
   }
+
+  descargarConsentimiento(filename: string): Observable<Blob> {
+    // Extraer solo el nombre del archivo si viene con ruta
+    let cleanFilename = filename;
+    if (filename.includes('/')) {
+      const parts = filename.split('/');
+      cleanFilename = parts[parts.length - 1];
+    }
+
+    return this.http.get(`${this.baseApi}/pdf/recibida/${cleanFilename}`, {
+      responseType: 'blob'
+    });
+  }
 }

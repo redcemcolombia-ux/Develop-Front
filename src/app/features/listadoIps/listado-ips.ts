@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
@@ -16,6 +16,8 @@ import { Ips, ListadoIpsService } from './listado-ips.service';
 export class ListadoIps implements OnInit {
   private readonly listadoIpsService = inject(ListadoIpsService);
   private readonly cdr = inject(ChangeDetectorRef);
+
+  @Output() editarIps = new EventEmitter<Ips>();
 
   ipsExistentes: Ips[] = [];
   ipsFiltradas: Ips[] = [];
@@ -251,13 +253,8 @@ export class ListadoIps implements OnInit {
     });
   }
 
-  editarIps(ips: Ips): void {
-    Swal.fire({
-      title: 'Editar IPS',
-      text: `Funcionalidad de edición pendiente para: ${ips.NOMBRE_IPS}`,
-      icon: 'info',
-      confirmButtonText: 'Entendido'
-    });
+  onEditarIps(ips: Ips): void {
+    this.editarIps.emit(ips);
   }
 
   exportarExcel(): void {

@@ -128,6 +128,8 @@ export class MisCasosGestionadosPs implements OnInit {
     html += '<div class="row">';
 
     const basicFields = [
+      { label: '🔢 Numero Curso', value: caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '' },
+      { label: '📚 Tipo Curso', value: caso.TIPO_CURSO || caso.PKEYASPIRANT || '' },
       { label: '🆔 Documento', value: caso.DOCUMENTO },
       {
         label: '👤 Nombre Completo',
@@ -139,6 +141,8 @@ export class MisCasosGestionadosPs implements OnInit {
         label: '📅 Fecha de Nacimiento',
         value: caso.FECH_NACIMIENTO ? new Date(caso.FECH_NACIMIENTO).toLocaleDateString('es-CO') : 'N/A'
       },
+      { label: '🗺️ Departamento Nacimiento', value: caso.DEPARTAMENTO_NACIMIENTO || '' },
+      { label: '🏙️ Ciudad Nacimiento', value: caso.CIUDAD_NACIMIENTO || '' },
       { label: '📊 Estado', value: caso.ESTADO }
     ];
 
@@ -164,8 +168,8 @@ export class MisCasosGestionadosPs implements OnInit {
       { label: '📞 Teléfono', value: caso.TELEFONO },
       { label: '📱 Celular', value: caso.CELULAR },
       { label: '🏠 Dirección', value: caso.DIRECCION },
-      { label: '🏙️ Ciudad', value: caso.CIUDAD },
-      { label: '🗺️ Departamento', value: caso.DEPARTAMENTO }
+      { label: '🏙️ Ciudad donde reside', value: caso.CIUDAD },
+      { label: '🗺️ Departamento donde reside', value: caso.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
@@ -246,6 +250,16 @@ export class MisCasosGestionadosPs implements OnInit {
       html += '</div></div></div>';
     }
 
+    // Información de Consentimiento (si existe)
+    if (this.tieneConsentimiento(caso)) {
+      html += '<div class="card mb-3">';
+      html += '<div class="card-header bg-danger text-white"><h6 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Consentimiento</h6></div>';
+      html += '<div class="card-body text-center">';
+      html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-success">Consentimiento Recibido</span></p>`;
+      html += `<button type="button" class="btn btn-danger text-white" id="btnVerConsentimiento"><i class="fas fa-eye me-2"></i>Ver Consentimiento</button>`;
+      html += '</div></div></div>';
+    }
+
     html += '</div>';
 
     Swal.fire({
@@ -254,7 +268,16 @@ export class MisCasosGestionadosPs implements OnInit {
       icon: 'info',
       width: '900px',
       showCloseButton: true,
-      confirmButtonText: 'Cerrar'
+      confirmButtonText: 'Cerrar',
+      didOpen: () => {
+        const btnVerConsentimiento = document.getElementById('btnVerConsentimiento');
+        if (btnVerConsentimiento) {
+          btnVerConsentimiento.addEventListener('click', () => {
+            Swal.close();
+            this.verConsentimiento(caso);
+          });
+        }
+      }
     });
   }
 
@@ -397,6 +420,78 @@ export class MisCasosGestionadosPs implements OnInit {
     });
   }
 
+  tieneConsentimiento(caso: any): boolean {
+    return caso?.RUTA_NOTIFICACION_RECIBIDA && caso.RUTA_NOTIFICACION_RECIBIDA.trim() !== '';
+  }
+
+  verConsentimiento(caso: any): void {
+    if (!this.tieneConsentimiento(caso)) {
+      Swal.fire({ icon: 'warning', title: 'Sin consentimiento', text: 'Este caso no tiene consentimiento cargado' });
+      return;
+    }
+
+    const filename = caso.RUTA_NOTIFICACION_RECIBIDA;
+    if (!filename) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se encontró el archivo de consentimiento' });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Cargando consentimiento...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this.service.descargarConsentimiento(filename).subscribe({
+      next: (pdfBlob: Blob) => {
+        Swal.close();
+
+        // Crear URL del blob
+        const blobUrl = URL.createObjectURL(pdfBlob);
+
+        // Mostrar el PDF en un modal de SweetAlert2
+        const html = `
+          <div class="pdf-viewer-modal" style="width: 100%; height: 700px;">
+            <embed src="${blobUrl}" type="application/pdf" style="width: 100%; height: 100%; border: none;">
+          </div>
+        `;
+
+        Swal.fire({
+          title: 'Consentimiento',
+          html,
+          width: '95%',
+          heightAuto: false,
+          showCloseButton: true,
+          showConfirmButton: false,
+          customClass: {
+            container: 'pdf-viewer-container',
+            htmlContainer: 'pdf-viewer-html-container'
+          },
+          didClose: () => {
+            // Limpiar el blob URL cuando se cierre el modal
+            if (blobUrl) {
+              URL.revokeObjectURL(blobUrl);
+            }
+          }
+        });
+      },
+      error: (error) => {
+        Swal.close();
+        let errorMessage = 'Error al cargar el consentimiento. Por favor, intente nuevamente.';
+        if (error.status === 404) {
+          errorMessage = 'El archivo de consentimiento no fue encontrado en el servidor.';
+        } else if (error.status === 500) {
+          errorMessage = 'Error en el servidor. Por favor, contacte al administrador.';
+        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: errorMessage
+        });
+      }
+    });
+  }
+
   cargarResultadoEntrevista(caso: any): void {
     const nombre = `${caso?.NOMBRE ?? ''} ${caso?.PRIMER_APELLIDO ?? ''} ${caso?.SEGUNDO_APELLIDO ?? ''}`.trim();
 
@@ -531,12 +626,20 @@ export class MisCasosGestionadosPs implements OnInit {
     }
 
     const datosExportar = this.casosFiltrados.map((caso) => ({
-      Documento: caso.DOCUMENTO || '',
-      Nombre: `${caso.NOMBRE || ''} ${caso.PRIMER_APELLIDO || ''} ${caso.SEGUNDO_APELLIDO || ''}`.trim(),
-      Correo: caso.CORREO || '',
-      Teléfono: caso.TELEFONO || '',
-      Ciudad: caso.CIUDAD || '',
-      Estado: caso.ESTADO || '',
+      'Numero Curso': caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '',
+      'Tipo Curso': caso.TIPO_CURSO || caso.PKEYASPIRANT || '',
+      'Documento': caso.DOCUMENTO || '',
+      'Nombre': `${caso.NOMBRE || ''} ${caso.PRIMER_APELLIDO || ''} ${caso.SEGUNDO_APELLIDO || ''}`.trim(),
+      'Edad': caso.EDAD || '',
+      'Género': caso.GENERO || '',
+      'Departamento Nacimiento': caso.DEPARTAMENTO_NACIMIENTO || '',
+      'Ciudad Nacimiento': caso.CIUDAD_NACIMIENTO || '',
+      'Correo': caso.CORREO || '',
+      'Teléfono': caso.TELEFONO || '',
+      'Celular': caso.CELULAR || '',
+      'Ciudad donde reside': caso.CIUDAD || '',
+      'Departamento donde reside': caso.DEPARTAMENTO || '',
+      'Estado': caso.ESTADO || '',
       'Estado Notificación': caso.ESTADO_NOTIFICACION || '',
       'Tipo Reunión': caso.TIPO_REUNION || '',
       'Fecha Cita': caso.FECHA_HORA_CITA_PSICOLOGIA || ''

@@ -93,7 +93,11 @@ export class GestorIpsCitas implements OnInit {
           hoja.DOCUMENTO.toLowerCase().includes(termino) ||
           hoja.CORREO.toLowerCase().includes(termino) ||
           hoja.CIUDAD.toLowerCase().includes(termino) ||
-          hoja.DEPARTAMENTO.toLowerCase().includes(termino)
+          hoja.DEPARTAMENTO.toLowerCase().includes(termino) ||
+          (hoja.NUMERO_CURSO || hoja.PKEYHOJAVIDA || '').toLowerCase().includes(termino) ||
+          (hoja.TIPO_CURSO || hoja.PKEYASPIRANT || '').toLowerCase().includes(termino) ||
+          (hoja.DEPARTAMENTO_NACIMIENTO || '').toLowerCase().includes(termino) ||
+          (hoja.CIUDAD_NACIMIENTO || '').toLowerCase().includes(termino)
       );
     }
     this.currentPage = 1;
@@ -148,6 +152,10 @@ export class GestorIpsCitas implements OnInit {
         label: '📅 Fecha de Nacimiento',
         value: new Date(hoja.FECH_NACIMIENTO).toLocaleDateString('es-CO')
       },
+      { label: '📋 Numero Curso', value: hoja.NUMERO_CURSO || hoja.PKEYHOJAVIDA || 'N/A' },
+      { label: '📋 Tipo Curso', value: hoja.TIPO_CURSO || hoja.PKEYASPIRANT || 'N/A' },
+      { label: '🌍 Departamento Nacimiento', value: hoja.DEPARTAMENTO_NACIMIENTO || 'N/A' },
+      { label: '🏙️ Ciudad Nacimiento', value: hoja.CIUDAD_NACIMIENTO || 'N/A' },
       { label: '📊 Estado', value: hoja.ESTADO, isBadge: true }
     ];
 
@@ -179,8 +187,8 @@ export class GestorIpsCitas implements OnInit {
       { label: '📞 Teléfono', value: hoja.TELEFONO },
       { label: '📱 Celular', value: hoja.CELULAR },
       { label: '🏠 Dirección', value: hoja.DIRECCION },
-      { label: '🏙️ Ciudad', value: hoja.CIUDAD },
-      { label: '🗺️ Departamento', value: hoja.DEPARTAMENTO }
+      { label: '🏙️ Ciudad donde reside', value: hoja.CIUDAD },
+      { label: '🗺️ Departamento donde reside', value: hoja.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
@@ -402,23 +410,34 @@ export class GestorIpsCitas implements OnInit {
     }
 
     const datosExport = this.filtradas.map((hoja) => ({
+      'Numero Curso': hoja.NUMERO_CURSO || hoja.PKEYHOJAVIDA || '',
+      'Tipo Curso': hoja.TIPO_CURSO || hoja.PKEYASPIRANT || '',
       Documento: hoja.DOCUMENTO,
       'Nombre Completo': `${hoja.NOMBRE} ${hoja.PRIMER_APELLIDO} ${hoja.SEGUNDO_APELLIDO}`.trim(),
       Edad: hoja.EDAD,
       Género: hoja.GENERO,
+      'Fecha de Nacimiento': hoja.FECH_NACIMIENTO,
+      'Departamento Nacimiento': hoja.DEPARTAMENTO_NACIMIENTO || '',
+      'Ciudad Nacimiento': hoja.CIUDAD_NACIMIENTO || '',
       Correo: hoja.CORREO,
       Teléfono: hoja.TELEFONO,
       Celular: hoja.CELULAR,
-      Ciudad: hoja.CIUDAD,
-      Departamento: hoja.DEPARTAMENTO,
+      Dirección: hoja.DIRECCION,
+      'Ciudad donde reside': hoja.CIUDAD,
+      'Departamento donde reside': hoja.DEPARTAMENTO,
       Estado: hoja.ESTADO,
       Regional: hoja.REGIONAL,
       'Código Inscripción': hoja.CODIGO_INSCRIPCION,
       'Programa Académico': hoja.CODIPROGACAD,
       'Año Académico': hoja.ANNOPERIACAD,
+      'Número Período Académico': hoja.NUMEPERIACAD,
       Colegio: hoja.COLEGIO,
+      'Grupo Minoritario': hoja.GRUP_MINO,
       Estrato: hoja.ESTRATO,
-      'Tipo Medio': hoja.TIPO_MEDIO
+      'Tipo Medio': hoja.TIPO_MEDIO,
+      'Complementaria 1': hoja.COMPLEMENTARIA_1,
+      'Complementaria 2': hoja.COMPLEMENTARIA_2,
+      'Fecha Inscripción': hoja.FECHA_INSCRIPCION
     }));
 
     const ws = XLSX.utils.json_to_sheet(datosExport);

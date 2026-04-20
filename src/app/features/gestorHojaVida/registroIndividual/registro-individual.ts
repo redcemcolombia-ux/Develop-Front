@@ -26,8 +26,8 @@ export class RegistroIndividual implements OnInit {
 
   constructor() {
     this.form = this.fb.group({
-      pkeyHojaVida: ['', [Validators.required]],
-      pkeyAspirant: ['', [Validators.required]],
+      numeroCurso: ['', [Validators.required]],
+      tipoCurso: ['', [Validators.required]],
       codiProgAcad: ['', [Validators.required]],
       annoPeriacad: [new Date().getFullYear(), [Validators.required, Validators.min(2020), Validators.max(2030)]],
       numePeriacad: ['1', [Validators.required]],
@@ -39,6 +39,8 @@ export class RegistroIndividual implements OnInit {
       edad: ['', [Validators.required, Validators.min(16), Validators.max(35)]],
       genero: ['Masculino', [Validators.required]],
       fechNacimiento: ['', [Validators.required]],
+      departamentoNacimiento: ['', [Validators.required]],
+      ciudadNacimiento: ['', [Validators.required]],
       correo: ['', [Validators.required, Validators.email]],
       telefono: ['', [Validators.pattern(/^\d{7,12}$/)]],
       celular: ['', [Validators.required, Validators.pattern(/^\d{7,12}$/)]],
@@ -71,8 +73,8 @@ export class RegistroIndividual implements OnInit {
     }
 
     const hojaVida = {
-      PKEYHOJAVIDA: this.f['pkeyHojaVida'].value,
-      PKEYASPIRANT: this.f['pkeyAspirant'].value,
+      NUMERO_CURSO: this.f['numeroCurso'].value,
+      TIPO_CURSO: this.f['tipoCurso'].value,
       CODIPROGACAD: this.f['codiProgAcad'].value,
       ANNOPERIACAD: this.f['annoPeriacad'].value,
       NUMEPERIACAD: this.f['numePeriacad'].value,
@@ -84,6 +86,8 @@ export class RegistroIndividual implements OnInit {
       EDAD: this.f['edad'].value,
       GENERO: this.f['genero'].value,
       FECH_NACIMIENTO: this.f['fechNacimiento'].value,
+      DEPARTAMENTO_NACIMIENTO: this.f['departamentoNacimiento'].value,
+      CIUDAD_NACIMIENTO: this.f['ciudadNacimiento'].value,
       CORREO: this.f['correo'].value,
       TELEFONO: this.f['telefono'].value,
       CELULAR: this.f['celular'].value,

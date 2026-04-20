@@ -13,9 +13,12 @@ import { EditarUsuario } from '../editarUsuario/editar-usuario';
 import { Usuario } from '../listadoUsuarios/listado-usuarios.service';
 import { RegistroIps } from '../registroIps/registro-ips';
 import { ListadoIps } from '../listadoIps/listado-ips';
+import { EditarIps } from '../editarIps/editar-ips';
+import { Ips } from '../listadoIps/listado-ips.service';
 import { GestorIpsCitas } from '../gestorIpsCitas/gestor-ips-citas';
 import { MisCasos } from '../misCasos/mis-casos';
 import { CasosGestionados } from '../casosGestionados/casos-gestionados';
+import { CasosAplazadosIps } from '../casosAplazadosIps/casos-aplazados-ips';
 import { Informe } from '../informe/informe';
 import { ConsultarHojasVidaPs } from '../consultarHojasDeVidaPs/consultar-hojas-vida-ps';
 import { MisCasosTomadosPs } from '../misCasosTomadosPs/mis-casos-tomados-ps';
@@ -28,6 +31,9 @@ import { InformePs } from '../informePs/informe-ps';
 import { RegistroIndividual } from '../gestorHojaVida/registroIndividual/registro-individual';
 import { CargaMasiva } from '../gestorHojaVida/cargaMasiva/carga-masiva';
 import { ConsultaHojasVida } from '../gestorHojaVida/consultaHojasVida/consulta-hojas-vida';
+import { GestionarAspirante } from '../gestorHojaVida/gestionarAspirante/gestionar-aspirante';
+import { CasosCerrados } from '../gestorHojaVida/casosCerrados/casos-cerrados';
+import { CasosAplazados } from '../gestorHojaVida/casosAplazados/casos-aplazados';
 import { GraficasHojasVida } from '../gestorHojaVida/graficasHojasVida/graficas-hojas-vida';
 import { Aplicaciones } from '../aplicaciones/aplicaciones';
 
@@ -36,7 +42,7 @@ type PanelId = AsidePanelId;
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, GestorIpsCitas, MisCasos, CasosGestionados, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, GraficasHojasVida, Aplicaciones],
+  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -64,6 +70,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   showCasosGestionados(): boolean {
     return (this.activePanel() as unknown as string) === 'misCasosGestionados';
+  }
+
+  showCasosAplazadosIps(): boolean {
+    return (this.activePanel() as unknown as string) === 'casosAplazadosIps';
   }
 
   showInforme(): boolean {
@@ -114,6 +124,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     return (this.activePanel() as unknown as string) === 'consultaHojas';
   }
 
+  showGestionarAspirante(): boolean {
+    return (this.activePanel() as unknown as string) === 'gestionarAspirante';
+  }
+
+  showCasosCerrados(): boolean {
+    return (this.activePanel() as unknown as string) === 'casosCerrados';
+  }
+
+  showCasosAplazados(): boolean {
+    return (this.activePanel() as unknown as string) === 'casosAplazados';
+  }
+
   showGraficasHojas(): boolean {
     return (this.activePanel() as unknown as string) === 'graficasHojas';
   }
@@ -126,7 +148,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     return (this.activePanel() as unknown as string) === 'editarUsuario';
   }
 
+  showListadoIps(): boolean {
+    return (this.activePanel() as unknown as string) === 'listadoIps';
+  }
+
+  showEditarIps(): boolean {
+    return (this.activePanel() as unknown as string) === 'editarIps';
+  }
+
   usuarioAEditar: Usuario | null = null;
+  ipsAEditar: Ips | null = null;
 
   readonly userName = signal('Usuario');
   readonly userEmail = signal('');
@@ -245,6 +276,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   onVolverAListado(): void {
     this.usuarioAEditar = null;
     this.activePanel.set('listadoUsuarios');
+  }
+
+  onEditarIps(ips: Ips): void {
+    this.ipsAEditar = ips;
+    this.activePanel.set('editarIps');
+  }
+
+  onVolverAListadoIps(): void {
+    this.ipsAEditar = null;
+    this.activePanel.set('listadoIps');
   }
 
   onCloseAside(): void {

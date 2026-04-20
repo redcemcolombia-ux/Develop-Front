@@ -1,152 +1,233 @@
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #0d6efd 0%, #0a58ca 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #0a58ca 0%, #084298 100%);
+  }
+
+  /* Firefox */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #0d6efd rgba(0, 0, 0, 0.05);
+  }
+</style>
+
 <div class="card platform-card">
   <div class="card-header platform-card__header platform-card__header--primary d-flex justify-content-between align-items-center">
     <h5 class="mb-0">Gráficas y Estadísticas</h5>
+    <button
+      type="button"
+      class="btn btn-outline-light btn-sm"
+      (click)="cargarDatosGraficas()"
+      [disabled]="isLoadingGraficas"
+    >
+      <span *ngIf="isLoadingGraficas" class="spinner-border spinner-border-sm me-2" role="status"></span>
+      Actualizar
+    </button>
   </div>
 
   <div class="card-body p-4">
-    <!-- Controles superiores -->
-    <div class="row mb-4">
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-body text-center">
-            <h6 class="card-title">Actualizar Gráficas</h6>
-            <p class="card-text small">Actualiza manualmente los datos de las gráficas</p>
-            <button class="btn btn-primary" (click)="cargarDatosGraficas()">
-              Actualizar Ahora
-            </button>
-          </div>
-        </div>
+    <div *ngIf="isLoadingGraficas" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
       </div>
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-body text-center">
-            <h6 class="card-title">Exportar Datos</h6>
-            <p class="card-text small">Descargar información completa en Excel</p>
-            <button class="btn btn-success" (click)="descargarExcel()" [disabled]="isLoadingGraficas">
-              <span *ngIf="isLoadingGraficas" class="spinner-border spinner-border-sm me-2"></span>
-              {{ isLoadingGraficas ? 'Descargando...' : 'Descargar Excel' }}
-            </button>
-          </div>
-        </div>
-      </div>
+      <p class="mt-2">Cargando datos de gráficas...</p>
     </div>
 
-    <!-- Estadísticas generales -->
-    <div class="row mb-4 g-3">
-      <div class="col-md-3 col-sm-6">
-        <div class="card bg-primary text-white h-100 shadow-sm">
-          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
-            <h2 class="mb-2 fw-bold text-white">{{ totalHojasVida }}</h2>
-            <p class="mb-0 text-white">Total Hojas de Vida</p>
-          </div>
-        </div>
+    <div *ngIf="!isLoadingGraficas">
+      <!-- Botón de exportación -->
+      <div class="d-flex justify-content-end mb-4">
+        <button type="button" class="btn btn-success" (click)="descargarExcel()" style="color: #ffffff;">
+          📊 Exportar a Excel
+        </button>
       </div>
-      <div class="col-md-3 col-sm-6">
-        <div class="card bg-success text-white h-100 shadow-sm">
-          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
-            <h2 class="mb-2 fw-bold text-white">{{ estadisticasEstado.PROCESADO || 0 }}</h2>
-            <p class="mb-0 text-white">Procesadas</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-sm-6">
-        <div class="card bg-warning text-white h-100 shadow-sm">
-          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
-            <h2 class="mb-2 fw-bold text-white">{{ estadisticasEstado['EN ESPERA'] || 0 }}</h2>
-            <p class="mb-0 text-white">En Espera</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-sm-6">
-        <div class="card bg-info text-white h-100 shadow-sm">
-          <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 140px;">
-            <h2 class="mb-2 fw-bold text-white">{{ estadisticasEstado['EN GESTION'] || 0 }}</h2>
-            <p class="mb-0 text-white">En Gestión</p>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Gráficas -->
-    <div class="row g-3">
-      <!-- Gráfica de Torta -->
-      <div class="col-lg-6 mb-4">
-        <div class="card shadow h-100">
-          <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <h6 class="mb-0 fw-semibold">📊 Distribución por Estado</h6>
+      <!-- Estadísticas generales -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-white" style="background-color: #0d6efd;">
+            <div class="card-body">
+              <h6 class="card-title text-white">Total Hojas de Vida</h6>
+              <h2 class="mb-0" style="color: #ffffff;">{{ totalHojasVida }}</h2>
+              <small style="color: #ffffff;">100%</small>
+            </div>
           </div>
-          <div class="card-body p-4">
-            <div class="chart-container" style="position: relative; height: 400px;">
-              <!-- Placeholder cuando no hay datos -->
-              <div *ngIf="totalHojasVida === 0" class="chart-placeholder">
-                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
-                  <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
-                </svg>
-                <p class="chart-placeholder-text">Sin datos disponibles</p>
-                <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
-              </div>
-              <!-- Gráfica cuando hay datos -->
-              <canvas *ngIf="totalHojasVida > 0" #pieChart></canvas>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-white" style="background-color: #198754;">
+            <div class="card-body">
+              <h6 class="card-title text-white">Procesadas</h6>
+              <h2 class="mb-0 text-white">{{ totalProcesadas }}</h2>
+              <small class="text-white">{{ totalHojasVida > 0 ? ((totalProcesadas / totalHojasVida) * 100).toFixed(1) : 0 }}%</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-white" style="background-color: #0d6efd;">
+            <div class="card-body">
+              <h6 class="card-title text-white">En Proceso</h6>
+              <h2 class="mb-0 text-white">{{ totalEnProceso }}</h2>
+              <small class="text-white">{{ totalHojasVida > 0 ? ((totalEnProceso / totalHojasVida) * 100).toFixed(1) : 0 }}%</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-white" style="background-color: #dc3545;">
+            <div class="card-body">
+              <h6 class="card-title text-white">Sin Gestión</h6>
+              <h2 class="mb-0" style="color: #ffffff;">{{ totalSinGestion }}</h2>
+              <small style="color: #ffffff;">{{ totalHojasVida > 0 ? ((totalSinGestion / totalHojasVida) * 100).toFixed(1) : 0 }}%</small>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Gráfica de Barras -->
-      <div class="col-lg-6 mb-4">
-        <div class="card shadow h-100">
-          <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <h6 class="mb-0 fw-semibold">📈 Cantidad por Estado</h6>
+      <!-- Estadísticas de casos procesados (detallados) -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4 col-sm-6">
+          <div class="card text-white" style="background-color: #28a745;">
+            <div class="card-body">
+              <h6 class="card-title text-white">✅ Casos Cerrados</h6>
+              <h2 class="mb-0 text-white">{{ totalCerrados }}</h2>
+              <small class="text-white">{{ totalHojasVida > 0 ? ((totalCerrados / totalHojasVida) * 100).toFixed(1) : 0 }}%</small>
+            </div>
           </div>
-          <div class="card-body p-4">
-            <div class="chart-container" style="position: relative; height: 400px;">
-              <!-- Placeholder cuando no hay datos -->
-              <div *ngIf="totalHojasVida === 0" class="chart-placeholder">
-                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
-                  <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
-                </svg>
-                <p class="chart-placeholder-text">Sin datos disponibles</p>
-                <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
-              </div>
-              <!-- Gráfica cuando hay datos -->
-              <canvas *ngIf="totalHojasVida > 0" #barChart></canvas>
+        </div>
+
+        <div class="col-md-4 col-sm-6">
+          <div class="card text-white" style="background-color: #0d6efd;">
+            <div class="card-body">
+              <h6 class="card-title text-white">⏸ Casos Aplazados</h6>
+              <h2 class="mb-0 text-white">{{ totalAplazados }}</h2>
+              <small class="text-white">{{ totalHojasVida > 0 ? ((totalAplazados / totalHojasVida) * 100).toFixed(1) : 0 }}%</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 col-sm-6">
+          <div class="card text-white" style="background-color: #ffc107;">
+            <div class="card-body">
+              <h6 class="card-title text-dark">⚙️ Para Gestionar</h6>
+              <h2 class="mb-0 text-dark">{{ totalParaGestionar }}</h2>
+              <small class="text-dark">{{ totalHojasVida > 0 ? ((totalParaGestionar / totalHojasVida) * 100).toFixed(1) : 0 }}%</small>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Gráfica de Barras por Ciudad -->
-    <div class="row">
-      <div class="col-12 mb-4">
-        <div class="card shadow">
-          <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <h6 class="mb-0 fw-semibold">🌆 Distribución por Ciudad (Top 10)</h6>
-          </div>
-          <div class="card-body p-4">
-            <div class="chart-container" style="position: relative; height: 400px;">
-              <!-- Placeholder cuando no hay datos -->
-              <div *ngIf="totalHojasVida === 0" class="chart-placeholder">
-                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
-                  <path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
-                </svg>
-                <p class="chart-placeholder-text">Sin datos disponibles</p>
-                <p class="chart-placeholder-subtext">Actualiza para cargar estadísticas</p>
+      <!-- Sección de Gráficas Personalizadas -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card platform-card">
+            <div class="card-header" style="background-color: #495057; color: #ffffff;">
+              <h6 class="mb-0 text-white">⚙️ Gráficas Personalizadas</h6>
+            </div>
+            <div class="card-body p-4">
+              <div class="row">
+                <!-- Panel de configuración -->
+                <div class="col-lg-3 mb-4">
+                  <div class="card" style="background-color: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.125);">
+                    <div class="card-body">
+                      <h6 class="fw-bold mb-3" style="color: inherit;">📋 Selecciona Campos</h6>
+                      <div class="custom-scrollbar" style="max-height: 320px; overflow-y: auto; padding-right: 5px;">
+                        <div class="form-check mb-2" *ngFor="let campo of camposDisponibles">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            [(ngModel)]="campo.seleccionado"
+                            [id]="'campo_' + campo.campo"
+                          >
+                          <label class="form-check-label" [for]="'campo_' + campo.campo" style="color: inherit; cursor: pointer;">
+                            {{ campo.label }}
+                          </label>
+                        </div>
+                      </div>
+
+                      <hr class="my-3">
+
+                      <h6 class="fw-bold mb-3" style="color: inherit;">📊 Tipo de Gráfica</h6>
+                      <div class="btn-group-vertical w-100" role="group">
+                        <button
+                          *ngFor="let tipo of tiposGrafica"
+                          type="button"
+                          class="btn btn-outline-primary text-start mb-2"
+                          [class.active]="tipoGraficaSeleccionado === tipo.tipo"
+                          (click)="tipoGraficaSeleccionado = tipo.tipo"
+                        >
+                          <span class="me-2">{{ tipo.icono }}</span>
+                          {{ tipo.label }}
+                        </button>
+                      </div>
+
+                      <hr class="my-3">
+
+                      <div class="form-check form-switch mb-3">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="mostrarTop10"
+                          [(ngModel)]="mostrarTop10"
+                        >
+                        <label class="form-check-label" for="mostrarTop10" style="color: inherit;">
+                          Mostrar solo Top 10
+                        </label>
+                      </div>
+
+                      <button
+                        class="btn btn-primary w-100 fw-bold"
+                        (click)="generarGraficaDinamica()"
+                      >
+                        🎨 Generar Gráfica
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Área de la gráfica dinámica -->
+                <div class="col-lg-9">
+                  <div class="card platform-card h-100">
+                    <div class="card-body">
+                      <div style="height: 500px; position: relative;">
+                        <div *ngIf="!hasDynamicChart" class="chart-placeholder" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="chart-icon" viewBox="0 0 16 16">
+                            <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/>
+                          </svg>
+                          <p class="chart-placeholder-text">Configura tu gráfica</p>
+                          <p class="chart-placeholder-subtext">Selecciona campos, tipo de gráfica y genera tu visualización personalizada</p>
+                        </div>
+                        <canvas #dynamicChart style="position: relative; z-index: 2;"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <!-- Gráfica cuando hay datos -->
-              <canvas *ngIf="totalHojasVida > 0" #cityChart></canvas>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Última actualización -->
-    <div class="row">
-      <div class="col-12">
-        <div class="alert alert-info">
+      <!-- Información adicional -->
+      <div class="alert mt-4" role="alert" style="background-color: rgba(13, 202, 240, 0.2); border: 1px solid rgba(13, 202, 240, 0.4); color: inherit;">
+        <h6 class="alert-heading" style="color: inherit;">📊 Información</h6>
+        <p class="mb-0" style="color: inherit;">
           <strong>Última actualización:</strong> {{ ultimaActualizacion | date:'dd/MM/yyyy HH:mm:ss' }}
-        </div>
+        </p>
       </div>
     </div>
   </div>

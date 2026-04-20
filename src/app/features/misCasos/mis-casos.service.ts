@@ -12,8 +12,10 @@ export interface ApiResponse<T> {
 
 export interface HojaVida {
   _id: string;
-  PKEYHOJAVIDA: string;
-  PKEYASPIRANT: string;
+  PKEYHOJAVIDA?: string;
+  PKEYASPIRANT?: string;
+  NUMERO_CURSO?: string;
+  TIPO_CURSO?: string;
   DOCUMENTO: string;
   NOMBRE: string;
   PRIMER_APELLIDO: string;
@@ -21,6 +23,8 @@ export interface HojaVida {
   EDAD: number;
   GENERO: string;
   FECH_NACIMIENTO: string;
+  DEPARTAMENTO_NACIMIENTO?: string;
+  CIUDAD_NACIMIENTO?: string;
   CORREO: string;
   TELEFONO: string;
   CELULAR: string;
@@ -42,15 +46,35 @@ export interface HojaVida {
   FECHA_INSCRIPCION: string;
   EXAMENES?: string;
   FECHA_HORA?: string;
-  IPS_ID?: string;
+  IPS_ID?: any;
   RECOMENDACIONES?: string;
-  USUARIO_ID?: string;
+  USUARIO_ID?: any;
   NOMBREIPS?: string;
   PDF_URL?: string;
   RUTA_BIOMETRIA?: {
     ruta: string;
     fecha: string;
+    id_usuario?: any;
   };
+  RUTA_PSICOLOGIA?: {
+    ruta: string;
+    fecha: string;
+    id_usuario?: any;
+  };
+  RUTA_NOTIFICACION_RECIBIDA?: string;
+  ESTADO_NOTIFICACION?: string;
+  H_ESTADO_NOTIFICACION_CONSENTIMIENTO?: string;
+  DETALLE?: string;
+  USUARIO_SIC?: string;
+  DETALLE_REUNION?: string;
+  FECHA_HORA_CITA_PSICOLOGIA?: string;
+  TIPO_REUNION?: string;
+  ESTADO_CIERRE?: string;
+  FECHA_CIERRE?: string;
+  NOTAS_CIERRE?: string;
+  TIPO_CIERRE?: string;
+  USUARIO_GESTOR_CIERRE?: any;
+  SEGUNDA_GESTION_IPS?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +82,13 @@ export interface HojaVida {
 export interface ConsultarCasosTomadosResponse {
   data: HojaVida[];
   mensaje?: string;
+}
+
+export interface ConsultarCasosRetornoIpsResponse {
+  casos: HojaVida[];
+  mensaje?: string;
+  total?: number;
+  ips?: any;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -87,6 +118,23 @@ export class MisCasosService {
     formData.append('pdf', pdfFile);
 
     const url = `${this.baseUrl}/api/pdf/pdf`;
+    return this.http
+      .put<ApiResponse<any>>(url, formData, { headers })
+      .pipe(catchError((e) => this.handle<any>(e)));
+  }
+
+  cargarPDFSegundaGestion(hojaVidaId: string, pdfFile: File): Observable<ApiResponse<any>> {
+    const token = localStorage.getItem('token') ?? '';
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+
+    const formData = new FormData();
+    formData.append('id', hojaVidaId);
+    formData.append('token', token);
+    formData.append('pdf', pdfFile);
+
+    const url = `${this.baseUrl}/api/pdf/segunda-gestion`;
     return this.http
       .put<ApiResponse<any>>(url, formData, { headers })
       .pipe(catchError((e) => this.handle<any>(e)));
@@ -125,6 +173,16 @@ export class MisCasosService {
     return this.http
       .get(url, { headers, responseType: 'blob' })
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => error)));
+  }
+
+  consultarCasosRetornoIps(ipsId: string): Observable<ApiResponse<ConsultarCasosRetornoIpsResponse>> {
+    const headers = this.buildAuthHeaders();
+    const url = `${this.baseUrl}/api/hojas-vida/casos/retorno-ips`;
+    const payload = { id_ips: ipsId };
+
+    return this.http
+      .post<ApiResponse<ConsultarCasosRetornoIpsResponse>>(url, payload, { headers })
+      .pipe(catchError((e) => this.handle<ConsultarCasosRetornoIpsResponse>(e)));
   }
 
   private buildAuthHeaders(): HttpHeaders {

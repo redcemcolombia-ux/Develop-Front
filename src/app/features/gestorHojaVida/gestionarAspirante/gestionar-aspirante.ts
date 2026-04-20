@@ -2,17 +2,18 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import { HojaVidaService } from '../hoja-vida.service';
 import { AuthService } from '../../../core/auth.service';
 import { PsicologiaGestionService } from '../../psicologiaGestion/psicologia-gestion.service';
 
 @Component({
-  selector: 'app-consulta-hojas-vida',
+  selector: 'app-gestionar-aspirante',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './consulta-hojas-vida.html'
+  templateUrl: './gestionar-aspirante.html'
 })
-export class ConsultaHojasVida implements OnInit {
+export class GestionarAspirante implements OnInit {
   private readonly hojaVidaService = inject(HojaVidaService);
   private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -26,6 +27,12 @@ export class ConsultaHojasVida implements OnInit {
   itemsPerPage = 10;
   totalItems = 0;
   canViewPDFs = true;
+
+  // Variables para el modal de gestión
+  hojaSeleccionada: any = null;
+  estadoSeleccionado: string = '';
+  notasGestion: string = '';
+  mostrarModalGestion: boolean = false;
 
   ngOnInit(): void {
     this.checkPDFPermissions();
@@ -48,7 +55,13 @@ export class ConsultaHojasVida implements OnInit {
     this.hojaVidaService.consultarHojasVida().subscribe({
       next: (response) => {
         if (response.error === 0 || response.error === '0') {
-          this.hojasVidaExistentes = response.response?.data || response.data || response.response || [];
+          const todasLasHojas = response.response?.data || response.data || response.response || [];
+
+          // Filtrar solo casos completados (con los 3 PDFs)
+          this.hojasVidaExistentes = todasLasHojas.filter((hoja: any) => {
+            return this.esCompletado(hoja);
+          });
+
           this.totalItems = this.hojasVidaExistentes.length;
           this.filtrarHojasVida();
 
@@ -59,7 +72,7 @@ export class ConsultaHojasVida implements OnInit {
             Swal.fire({
               icon: 'info',
               title: 'Sin datos',
-              text: 'No se encontraron hojas de vida registradas'
+              text: 'No se encontraron casos completados'
             });
           }
         } else {
@@ -97,6 +110,43 @@ export class ConsultaHojasVida implements OnInit {
     });
   }
 
+  private esCompletado(hoja: any): boolean {
+    // Si tiene SEGUNDA_GESTION_IPS en true
+    if (hoja.SEGUNDA_GESTION_IPS === true) {
+      // Si ya está cerrado como Apto o No Apto, NO mostrar
+      if (hoja.ESTADO_CIERRE) {
+        const estadoCierre = hoja.ESTADO_CIERRE.trim().toUpperCase();
+        if (estadoCierre === 'APTO' || estadoCierre === 'NO APTO') {
+          return false;
+        }
+      }
+      // Si no está cerrado o tiene otro estado, mostrar
+      return true;
+    }
+
+    let pdfsCount = 0;
+
+    // Verificar PDF de exámenes
+    if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
+      pdfsCount++;
+    }
+
+    // Verificar PDF de biometría
+    if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta !== null && hoja.RUTA_BIOMETRIA.ruta !== undefined) {
+      pdfsCount++;
+    }
+
+    // Verificar PDF de psicología
+    if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'string' && hoja.RUTA_PSICOLOGIA.trim() !== '') {
+      pdfsCount++;
+    } else if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'object' && hoja.RUTA_PSICOLOGIA.ruta !== null && hoja.RUTA_PSICOLOGIA.ruta !== undefined) {
+      pdfsCount++;
+    }
+
+    // Debe tener los 3 PDFs Y NO debe estar cerrado (sin ESTADO_CIERRE o ESTADO_CIERRE vacío)
+    return pdfsCount === 3 && (!hoja.ESTADO_CIERRE || hoja.ESTADO_CIERRE.trim() === '');
+  }
+
   filtrarHojasVida(): void {
     if (!this.searchTerm.trim()) {
       this.hojasVidaFiltradas = [...this.hojasVidaExistentes];
@@ -108,23 +158,9 @@ export class ConsultaHojasVida implements OnInit {
         hoja.PRIMER_APELLIDO?.toLowerCase().includes(term) ||
         hoja.CORREO?.toLowerCase().includes(term) ||
         hoja.CIUDAD?.toLowerCase().includes(term) ||
-        this.getIpsNombre(hoja).toLowerCase().includes(term) ||
-        this.getEstadoCarga(hoja).toLowerCase().includes(term)
+        this.getIpsNombre(hoja).toLowerCase().includes(term)
       );
     }
-    // Ordenar por estado: Completado -> En proceso -> Sin Gestion
-    this.hojasVidaFiltradas.sort((a, b) => {
-      const estadoA = this.getEstadoCarga(a);
-      const estadoB = this.getEstadoCarga(b);
-
-      const prioridad: { [key: string]: number } = {
-        'Completado': 1,
-        'En proceso': 2,
-        'Sin Gestion': 3
-      };
-
-      return (prioridad[estadoA] || 4) - (prioridad[estadoB] || 4);
-    });
     this.currentPage = 1;
   }
 
@@ -196,50 +232,6 @@ export class ConsultaHojasVida implements OnInit {
   getIpsBadgeClass(hoja: any): string {
     const nombre = hoja?.IPS?.NOMBRE_IPS || hoja?.IPS_ID?.NOMBRE_IPS || '';
     return nombre && nombre.trim().length > 0 ? 'bg-secondary' : 'bg-danger';
-  }
-
-  getEstadoCarga(hoja: any): string {
-    let pdfsCount = 0;
-
-    // Verificar PDF de exámenes
-    if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
-      pdfsCount++;
-    }
-
-    // Verificar PDF de biometría
-    if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta !== null && hoja.RUTA_BIOMETRIA.ruta !== undefined) {
-      pdfsCount++;
-    }
-
-    // Verificar PDF de psicología
-    if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'string' && hoja.RUTA_PSICOLOGIA.trim() !== '') {
-      pdfsCount++;
-    } else if (hoja.RUTA_PSICOLOGIA && typeof hoja.RUTA_PSICOLOGIA === 'object' && hoja.RUTA_PSICOLOGIA.ruta !== null && hoja.RUTA_PSICOLOGIA.ruta !== undefined) {
-      pdfsCount++;
-    }
-
-    if (pdfsCount === 3) {
-      return 'Completado';
-    } else if (pdfsCount > 0) {
-      return 'En proceso';
-    } else {
-      return 'Sin Gestion';
-    }
-  }
-
-  getEstadoBadgeClass(hoja: any): string {
-    const estado = this.getEstadoCarga(hoja);
-
-    switch (estado) {
-      case 'Completado':
-        return 'bg-success';
-      case 'En proceso':
-        return 'bg-primary';
-      case 'Sin Gestion':
-        return 'bg-danger';
-      default:
-        return 'bg-danger';
-    }
   }
 
   verDetalleHoja(hoja: any): void {
@@ -393,7 +385,98 @@ export class ConsultaHojasVida implements OnInit {
 
     html += '</div></div></div>';
 
-    // Información del Sistema
+    // Información de IPS Detallada
+    if (hoja.IPS_ID || hoja.IPS) {
+      const ips = hoja.IPS_ID || hoja.IPS;
+      html += '<div class="card mb-3 shadow">';
+      html += '<div class="card-header bg-success text-white"><strong>🏥 Información Completa de la IPS</strong></div>';
+      html += '<div class="card-body">';
+      html += '<div class="row">';
+
+      const ipsFields = [
+        { label: '🏥 Nombre IPS', value: ips.NOMBRE_IPS },
+        { label: '🆔 NIT', value: ips.NIT },
+        { label: '📞 Teléfono', value: ips.TELEFONO },
+        { label: '📧 Correo', value: ips.CORREO },
+        { label: '🏠 Dirección', value: ips.DIRECCION },
+        { label: '🏙️ Ciudad', value: ips.CIUDAD },
+        { label: '🗺️ Departamento', value: ips.DEPARTAMENTO },
+        { label: '🏢 Regional', value: ips.REGIONAL },
+        { label: '👤 Representante', value: ips.REPRESENTANTE },
+        { label: '✅ Estado IPS', value: ips.ESTADO }
+      ];
+
+      ipsFields.forEach(field => {
+        if (field.value) {
+          html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+          html += `<strong class="text-muted">${field.label}:</strong><br>`;
+          html += `<span class="text-dark" style="font-size: 1.1em;">${field.value}</span>`;
+          html += `</div>`;
+        }
+      });
+
+      // Información complementaria de la IPS
+      if (ips.COMPLEMENTARIA_1) {
+        html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
+        html += `<strong class="text-muted">📋 Tipo de Atención:</strong><br>`;
+        html += `<span class="text-dark" style="font-size: 1.1em;">${ips.COMPLEMENTARIA_1.tipo_atencion || 'N/A'}</span>`;
+        if (ips.COMPLEMENTARIA_1.especialidades && ips.COMPLEMENTARIA_1.especialidades.length > 0) {
+          html += `<div class="mt-2"><strong class="text-muted">Especialidades:</strong></div>`;
+          html += `<div class="d-flex flex-wrap gap-1 mt-1">`;
+          ips.COMPLEMENTARIA_1.especialidades.forEach((esp: string) => {
+            html += `<span class="badge bg-info">${esp}</span>`;
+          });
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+
+      if (ips.COMPLEMENTARIA_2) {
+        html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+        html += `<strong class="text-muted">🕐 Horario de Atención:</strong><br>`;
+        html += `<span class="text-dark" style="font-size: 1.1em;">${ips.COMPLEMENTARIA_2.horario_atencion || 'N/A'}</span>`;
+        html += `</div>`;
+        html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+        html += `<strong class="text-muted">🏥 Nivel de Complejidad:</strong><br>`;
+        html += `<span class="text-dark" style="font-size: 1.1em;">${ips.COMPLEMENTARIA_2.nivel_complejidad || 'N/A'}</span>`;
+        html += `</div>`;
+      }
+
+      html += '</div></div></div>';
+    }
+
+    // Información de Cita de Psicología
+    if (hoja.FECHA_HORA_CITA_PSICOLOGIA || hoja.TIPO_REUNION || hoja.DETALLE_REUNION) {
+      html += '<div class="card mb-3 shadow">';
+      html += '<div class="card-header bg-primary text-white"><strong>🧠 Información de Cita de Psicología</strong></div>';
+      html += '<div class="card-body">';
+      html += '<div class="row">';
+
+      if (hoja.FECHA_HORA_CITA_PSICOLOGIA) {
+        html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+        html += `<strong class="text-muted">📅 Fecha y Hora de Cita:</strong><br>`;
+        html += `<span class="text-dark" style="font-size: 1.1em;">${this.formatearFecha(hoja.FECHA_HORA_CITA_PSICOLOGIA)}</span>`;
+        html += `</div>`;
+      }
+
+      if (hoja.TIPO_REUNION) {
+        html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+        html += `<strong class="text-muted">📝 Tipo de Reunión:</strong><br>`;
+        html += `<span class="text-dark" style="font-size: 1.1em;">${hoja.TIPO_REUNION}</span>`;
+        html += `</div>`;
+      }
+
+      if (hoja.DETALLE_REUNION) {
+        html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
+        html += `<strong class="text-muted">📋 Detalle de Reunión:</strong><br>`;
+        html += `<div class="alert alert-info mt-2" style="font-size: 1.1em;">${hoja.DETALLE_REUNION}</div>`;
+        html += `</div>`;
+      }
+
+      html += '</div></div></div>';
+    }
+
+    // Información del Sistema y Estados
     html += '<div class="card mb-3 shadow">';
     html += '<div class="card-header bg-secondary text-white"><strong>🔑 Información del Sistema</strong></div>';
     html += '<div class="card-body">';
@@ -403,6 +486,7 @@ export class ConsultaHojasVida implements OnInit {
       { key: 'createdAt', label: '📅 Fecha de Creación', isDate: true },
       { key: 'updatedAt', label: '📅 Última Actualización', isDate: true },
       { key: 'ESTADO_NOTIFICACION', label: '📣 Estado de Notificación' },
+      { key: 'H_ESTADO_NOTIFICACION_CONSENTIMIENTO', label: '📋 Estado Notif. Consentimiento' },
       { key: 'USUARIO_SIC', label: '🔐 Psicólogo' }
     ];
 
@@ -417,6 +501,14 @@ export class ConsultaHojasVida implements OnInit {
       html += `</div>`;
     });
 
+    // Badge de Segunda Gestión IPS
+    if (hoja.SEGUNDA_GESTION_IPS) {
+      html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
+      html += `<strong class="text-muted">🔄 Segunda Gestión IPS:</strong><br>`;
+      html += `<span class="badge bg-warning text-dark" style="font-size: 1.1em;">✓ RE-GESTIONADO</span>`;
+      html += `</div>`;
+    }
+
     if (hoja.DETALLE) {
       html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
       html += `<strong class="text-muted">📋 Detalle de Procesamiento:</strong><br>`;
@@ -426,7 +518,7 @@ export class ConsultaHojasVida implements OnInit {
 
     html += '</div></div></div>';
 
-    // Secciones de PDFs (solo para perfiles con permiso y si existen los archivos)
+    // Secciones de PDFs (todos los casos completados tienen los 3 PDFs)
     if (this.canViewPDFs) {
       // Sección de PDF Historial Clínico
       if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
@@ -741,6 +833,265 @@ export class ConsultaHojasVida implements OnInit {
       error: () => {
         Swal.close();
         Swal.fire({ title: 'Error', text: 'No se pudo cargar el PDF de psicología', icon: 'error' });
+      }
+    });
+  }
+
+  // Exportar a Excel
+  exportarAExcel(): void {
+    if (this.hojasVidaFiltradas.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sin datos',
+        text: 'No hay datos para exportar'
+      });
+      return;
+    }
+
+    // Preparar datos para Excel
+    const datosExcel = this.hojasVidaFiltradas.map(hoja => ({
+      'Documento': hoja.DOCUMENTO || '',
+      'Nombre': `${this.capitalize(hoja.NOMBRE || '')} ${this.capitalize(hoja.PRIMER_APELLIDO || '')} ${this.capitalize(hoja.SEGUNDO_APELLIDO || '')}`.trim(),
+      'Correo': hoja.CORREO?.toLowerCase() || '',
+      'Teléfono': hoja.TELEFONO || '',
+      'Celular': hoja.CELULAR || '',
+      'Ciudad': this.capitalize(hoja.CIUDAD || ''),
+      'Departamento': this.capitalize(hoja.DEPARTAMENTO || ''),
+      'Dirección': hoja.DIRECCION || '',
+      'Edad': hoja.EDAD || '',
+      'Género': hoja.GENERO || '',
+      'Fecha Nacimiento': hoja.FECH_NACIMIENTO || '',
+      'Estrato': hoja.ESTRATO || '',
+      'Regional': hoja.REGIONAL || '',
+      'Colegio': hoja.COLEGIO || '',
+      'IPS': this.getIpsNombre(hoja),
+      'Fecha Inscripción': hoja.FECHA_INSCRIPCION || '',
+      'Estado': hoja.ESTADO || 'Sin Gestión',
+      'Fecha Creación': this.formatearFecha(hoja.createdAt || ''),
+      'Última Actualización': this.formatearFecha(hoja.updatedAt || '')
+    }));
+
+    // Crear el libro y la hoja
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datosExcel);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Casos Completados');
+
+    // Generar el nombre del archivo con fecha
+    const fecha = new Date().toISOString().split('T')[0];
+    const nombreArchivo = `Casos_Completados_${fecha}.xlsx`;
+
+    // Descargar el archivo
+    XLSX.writeFile(wb, nombreArchivo);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Exportación exitosa',
+      text: `Se han exportado ${datosExcel.length} registros`,
+      timer: 2000,
+      showConfirmButton: false
+    });
+  }
+
+  // Abrir modal de gestión
+  abrirModalGestion(hoja: any): void {
+    this.hojaSeleccionada = hoja;
+    this.estadoSeleccionado = '';
+    this.notasGestion = '';
+
+    const html = `
+      <div class="text-start">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Aspirante:</label>
+          <p class="text-muted">${this.capitalize(hoja.NOMBRE)} ${this.capitalize(hoja.PRIMER_APELLIDO)} - ${hoja.DOCUMENTO}</p>
+        </div>
+
+        <div class="mb-3">
+          <label for="estadoSelect" class="form-label fw-bold">Estado de Gestión <span class="text-danger">*</span></label>
+          <select id="estadoSelect" class="form-select">
+            <option value="">Seleccione una opción...</option>
+            <option value="Apto">Apto</option>
+            <option value="No Apto">No Apto</option>
+            <option value="Aplazado">Aplazado</option>
+          </select>
+        </div>
+
+        <div class="mb-3" id="notasContainer" style="display: none;">
+          <label for="notasTextarea" class="form-label fw-bold">Notas <span class="text-danger">*</span></label>
+          <textarea id="notasTextarea" class="form-control" rows="4" placeholder="Ingrese las observaciones..."></textarea>
+          <small class="text-muted">Este campo es obligatorio para No Apto y Aplazado</small>
+        </div>
+      </div>
+    `;
+
+    Swal.fire({
+      title: 'Gestionar Aspirante',
+      html: html,
+      width: '600px',
+      showCancelButton: true,
+      showConfirmButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Cerrar caso',
+      confirmButtonColor: '#0d6efd',
+      denyButtonText: 'Cerrar caso',
+      denyButtonColor: '#198754',
+      cancelButtonText: 'Cancelar',
+      cancelButtonColor: '#dc3545',
+      didOpen: () => {
+        const estadoSelect = document.getElementById('estadoSelect') as HTMLSelectElement;
+        const notasContainer = document.getElementById('notasContainer') as HTMLDivElement;
+        const confirmButton = Swal.getConfirmButton();
+        const denyButton = Swal.getDenyButton();
+
+        if (denyButton) {
+          denyButton.style.display = 'none';
+        }
+
+        // Evento para mostrar/ocultar notas y cambiar botones
+        estadoSelect?.addEventListener('change', (e) => {
+          const valor = (e.target as HTMLSelectElement).value;
+          this.estadoSeleccionado = valor;
+
+          if (valor === 'No Apto' || valor === 'Aplazado') {
+            notasContainer.style.display = 'block';
+          } else {
+            notasContainer.style.display = 'none';
+          }
+
+          // Cambiar botón según la selección
+          if (valor === 'Aplazado') {
+            if (confirmButton) {
+              confirmButton.textContent = 'Regresar a IPS';
+              confirmButton.style.backgroundColor = '#0d6efd';
+              confirmButton.style.borderColor = '#0d6efd';
+            }
+            if (denyButton) {
+              denyButton.textContent = 'Cerrar caso';
+              denyButton.style.display = 'inline-block';
+              denyButton.style.backgroundColor = '#198754';
+              denyButton.style.borderColor = '#198754';
+            }
+          } else {
+            if (confirmButton) {
+              confirmButton.textContent = 'Cerrar caso';
+              confirmButton.style.backgroundColor = '#0d6efd';
+              confirmButton.style.borderColor = '#0d6efd';
+            }
+            if (denyButton) {
+              denyButton.style.display = 'none';
+            }
+          }
+        });
+      },
+      preConfirm: () => {
+        const estadoSelect = document.getElementById('estadoSelect') as HTMLSelectElement;
+        const notasTextarea = document.getElementById('notasTextarea') as HTMLTextAreaElement;
+
+        const estado = estadoSelect?.value || '';
+        const notas = notasTextarea?.value?.trim() || '';
+
+        if (!estado) {
+          Swal.showValidationMessage('Debe seleccionar un estado');
+          return false;
+        }
+
+        if ((estado === 'No Apto' || estado === 'Aplazado') && !notas) {
+          Swal.showValidationMessage('Las notas son obligatorias para este estado');
+          return false;
+        }
+
+        return { estado, notas };
+      },
+      preDeny: () => {
+        const estadoSelect = document.getElementById('estadoSelect') as HTMLSelectElement;
+        const notasTextarea = document.getElementById('notasTextarea') as HTMLTextAreaElement;
+
+        const estado = estadoSelect?.value || '';
+        const notas = notasTextarea?.value?.trim() || '';
+
+        if (!estado) {
+          Swal.showValidationMessage('Debe seleccionar un estado');
+          return false;
+        }
+
+        if ((estado === 'No Apto' || estado === 'Aplazado') && !notas) {
+          Swal.showValidationMessage('Las notas son obligatorias para este estado');
+          return false;
+        }
+
+        return { estado, notas };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        // Botón confirmado: puede ser "Cerrar caso" o "Regresar a IPS" (dependiendo del estado)
+        const tipoCierre = this.estadoSeleccionado === 'Aplazado' ? 'Retorno Ips' : 'Caso Cerrado';
+        this.guardarGestion(hoja, result.value.estado, result.value.notas, tipoCierre);
+      }
+      if (result.isDenied && result.value) {
+        // Botón deny: siempre es "Cerrar caso" (solo aparece cuando es Aplazado)
+        this.guardarGestion(hoja, result.value.estado, result.value.notas, 'Caso Cerrado');
+      }
+    });
+  }
+
+  // Guardar la gestión
+  guardarGestion(hoja: any, estado: string, notas: string, tipoCierre: string): void {
+    const userInfo = this.authService.getUserInfo();
+
+    if (!userInfo || !userInfo.id) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener la información del usuario'
+      });
+      return;
+    }
+
+    // Preparar las notas: si es Apto, enviar "Na", si no, las notas ingresadas
+    const notasFinal = estado === 'Apto' ? 'Na' : notas;
+
+    const payload = {
+      id_hoja_vida: hoja._id,
+      id_usuario_gestor_cierre: userInfo.id,
+      estado_cierre: estado,
+      notas_cierre: notasFinal,
+      tipo_cierre: tipoCierre
+    };
+
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Guardando gestión',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.hojaVidaService.gestionarCierre(payload).subscribe({
+      next: (response) => {
+        if (response.error === 0 || response.error === '0') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Gestión guardada',
+            text: `El aspirante ha sido marcado como: ${estado}`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          // Recargar la lista de hojas de vida
+          this.consultarHojasVida();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: response.response?.mensaje || response.mensaje || 'Error al guardar la gestión'
+          });
+        }
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error al guardar la gestión: ' + (error.error?.mensaje || error.message || 'Error desconocido')
+        });
       }
     });
   }

@@ -18,6 +18,8 @@ interface EstadisticasPs {
   casosSinResultado: number;
   casosFinalizados: number;
   casosPendientes: number;
+  casosConConsentimiento: number;
+  casosSinConsentimiento: number;
 }
 
 @Component({
@@ -26,6 +28,10 @@ interface EstadisticasPs {
   imports: [CommonModule],
   templateUrl: './informe-ps.html',
   styles: [`
+    .informe-ps__header {
+      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    }
+
     .chart-placeholder {
       display: flex;
       flex-direction: column;
@@ -65,6 +71,7 @@ export class InformePs implements OnInit, AfterViewInit {
   @ViewChild('chartEstados') chartEstadosRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartResultados') chartResultadosRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartComparativo') chartComparativoRef?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartConsentimiento') chartConsentimientoRef?: ElementRef<HTMLCanvasElement>;
 
   casos: any[] = [];
   estadisticas: EstadisticasPs = {
@@ -74,19 +81,22 @@ export class InformePs implements OnInit, AfterViewInit {
     casosConResultado: 0,
     casosSinResultado: 0,
     casosFinalizados: 0,
-    casosPendientes: 0
+    casosPendientes: 0,
+    casosConConsentimiento: 0,
+    casosSinConsentimiento: 0
   };
   isLoading = false;
 
   private chartEstados?: Chart;
   private chartResultados?: Chart;
   private chartComparativo?: Chart;
+  private chartConsentimiento?: Chart;
 
   constructor() {
     const themeEffect = effect(() => {
       this.themeService.isDarkMode();
       if (this.isLoading) return;
-      if (!this.chartEstadosRef || !this.chartResultadosRef || !this.chartComparativoRef) return;
+      if (!this.chartEstadosRef || !this.chartResultadosRef || !this.chartComparativoRef || !this.chartConsentimientoRef) return;
       if (this.estadisticas.totalCasos === 0) return;
       setTimeout(() => this.crearGraficos(), 0);
     });
@@ -153,6 +163,12 @@ export class InformePs implements OnInit, AfterViewInit {
     this.estadisticas.casosConResultado = this.casos.filter((c) => c.RUTA_PSICOLOGIA).length;
     this.estadisticas.casosSinResultado = this.estadisticas.totalCasos - this.estadisticas.casosConResultado;
 
+    // Calcular casos con y sin consentimiento
+    this.estadisticas.casosConConsentimiento = this.casos.filter((c) => {
+      return c.RUTA_NOTIFICACION_RECIBIDA && c.RUTA_NOTIFICACION_RECIBIDA.trim() !== '';
+    }).length;
+    this.estadisticas.casosSinConsentimiento = this.estadisticas.totalCasos - this.estadisticas.casosConConsentimiento;
+
     // Casos finalizados = tienen agenda Y resultado de psicología
     this.estadisticas.casosFinalizados = this.casos.filter((c) => {
       return c.TIPO_REUNION && c.RUTA_PSICOLOGIA;
@@ -164,6 +180,7 @@ export class InformePs implements OnInit, AfterViewInit {
     this.crearGraficoEstados();
     this.crearGraficoResultados();
     this.crearGraficoComparativo();
+    this.crearGraficoConsentimiento();
   }
 
   crearGraficoEstados(): void {
@@ -390,6 +407,64 @@ export class InformePs implements OnInit, AfterViewInit {
     this.chartComparativo = new Chart(this.chartComparativoRef.nativeElement, config);
   }
 
+  crearGraficoConsentimiento(): void {
+    if (!this.chartConsentimientoRef || this.estadisticas.totalCasos === 0) return;
+
+    if (this.chartConsentimiento) {
+      this.chartConsentimiento.destroy();
+    }
+
+    const theme = this.getChartTheme();
+
+    const config: ChartConfiguration = {
+      type: 'doughnut' as ChartType,
+      data: {
+        labels: ['Con Consentimiento', 'Sin Consentimiento'],
+        datasets: [
+          {
+            data: [this.estadisticas.casosConConsentimiento, this.estadisticas.casosSinConsentimiento],
+            backgroundColor: ['#dc3545', '#fd7e14'],
+            borderWidth: 2,
+            borderColor: theme.segmentBorder
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: theme.text,
+              font: {
+                size: 12
+              }
+            }
+          },
+          title: {
+            display: true,
+            text: 'Estado de Consentimientos',
+            color: theme.text,
+            font: {
+              size: 14,
+              weight: 'bold'
+            }
+          },
+          tooltip: {
+            backgroundColor: theme.tooltipBg,
+            titleColor: theme.text,
+            bodyColor: theme.text,
+            borderColor: theme.tooltipBorder,
+            borderWidth: 1
+          }
+        }
+      }
+    };
+
+    this.chartConsentimiento = new Chart(this.chartConsentimientoRef.nativeElement, config);
+  }
+
   exportarExcel(): void {
     if (this.casos.length === 0) {
       Swal.fire({
@@ -408,32 +483,41 @@ export class InformePs implements OnInit, AfterViewInit {
       { Indicador: 'Casos sin Agenda', Cantidad: this.estadisticas.casosSinAgenda },
       { Indicador: 'Casos con Resultado de Psicología', Cantidad: this.estadisticas.casosConResultado },
       { Indicador: 'Casos sin Resultado', Cantidad: this.estadisticas.casosSinResultado },
+      { Indicador: 'Casos con Consentimiento Recibido', Cantidad: this.estadisticas.casosConConsentimiento },
+      { Indicador: 'Casos sin Consentimiento', Cantidad: this.estadisticas.casosSinConsentimiento },
       { Indicador: 'Casos Finalizados', Cantidad: this.estadisticas.casosFinalizados },
       { Indicador: 'Casos Pendientes', Cantidad: this.estadisticas.casosPendientes },
       { Indicador: '% Casos Finalizados', Cantidad: `${((this.estadisticas.casosFinalizados / this.estadisticas.totalCasos) * 100).toFixed(2)}%` },
       { Indicador: '% Con Agenda', Cantidad: `${((this.estadisticas.casosConAgenda / this.estadisticas.totalCasos) * 100).toFixed(2)}%` },
-      { Indicador: '% Con Resultado', Cantidad: `${((this.estadisticas.casosConResultado / this.estadisticas.totalCasos) * 100).toFixed(2)}%` }
+      { Indicador: '% Con Resultado', Cantidad: `${((this.estadisticas.casosConResultado / this.estadisticas.totalCasos) * 100).toFixed(2)}%` },
+      { Indicador: '% Con Consentimiento', Cantidad: `${((this.estadisticas.casosConConsentimiento / this.estadisticas.totalCasos) * 100).toFixed(2)}%` }
     ];
 
     // Hoja 2: Detalle completo de casos
     const casosDetalle = this.casos.map((caso) => {
       const tieneAgenda = caso.TIPO_REUNION ? true : false;
       const tieneResultado = caso.RUTA_PSICOLOGIA ? true : false;
+      const tieneConsentimiento = caso.RUTA_NOTIFICACION_RECIBIDA && caso.RUTA_NOTIFICACION_RECIBIDA.trim() !== '';
       const estaFinalizado = tieneAgenda && tieneResultado;
 
       return {
-        Documento: caso.DOCUMENTO,
+        'Numero Curso': caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '',
+        'Tipo Curso': caso.TIPO_CURSO || caso.PKEYASPIRANT || '',
+        'Documento': caso.DOCUMENTO,
         'Nombre Completo': `${caso.NOMBRE || ''} ${caso.PRIMER_APELLIDO || ''} ${caso.SEGUNDO_APELLIDO || ''}`.trim(),
-        Edad: caso.EDAD,
-        Género: caso.GENERO,
-        Correo: caso.CORREO,
-        Teléfono: caso.TELEFONO,
-        Celular: caso.CELULAR,
-        Ciudad: caso.CIUDAD,
-        Departamento: caso.DEPARTAMENTO,
-        Regional: caso.REGIONAL,
-        Estado: caso.ESTADO,
+        'Edad': caso.EDAD,
+        'Género': caso.GENERO,
+        'Departamento Nacimiento': caso.DEPARTAMENTO_NACIMIENTO || '',
+        'Ciudad Nacimiento': caso.CIUDAD_NACIMIENTO || '',
+        'Correo': caso.CORREO,
+        'Teléfono': caso.TELEFONO,
+        'Celular': caso.CELULAR,
+        'Ciudad donde reside': caso.CIUDAD,
+        'Departamento donde reside': caso.DEPARTAMENTO,
+        'Regional': caso.REGIONAL,
+        'Estado': caso.ESTADO,
         'Estado Notificación': caso.ESTADO_NOTIFICACION || 'N/A',
+        'Consentimiento Recibido': tieneConsentimiento ? 'SÍ' : 'NO',
         'Tipo Reunión': caso.TIPO_REUNION || 'N/A',
         'Fecha Cita': caso.FECHA_HORA_CITA_PSICOLOGIA || 'N/A',
         'Detalle Reunión': caso.DETALLE_REUNION || 'N/A',
@@ -499,6 +583,11 @@ export class InformePs implements OnInit, AfterViewInit {
   get porcentajeResultado(): number {
     if (this.estadisticas.totalCasos === 0) return 0;
     return (this.estadisticas.casosConResultado / this.estadisticas.totalCasos) * 100;
+  }
+
+  get porcentajeConsentimiento(): number {
+    if (this.estadisticas.totalCasos === 0) return 0;
+    return (this.estadisticas.casosConConsentimiento / this.estadisticas.totalCasos) * 100;
   }
 
   private getChartTheme(): {

@@ -148,6 +148,8 @@ export class ConsultarHojasVidaPs implements OnInit {
     html += '<div class="row">';
 
     const basicFields = [
+      { label: '🔢 Numero Curso', value: hoja.NUMERO_CURSO || hoja.PKEYHOJAVIDA || '' },
+      { label: '📚 Tipo Curso', value: hoja.TIPO_CURSO || hoja.PKEYASPIRANT || '' },
       { label: '🆔 Documento', value: hoja.DOCUMENTO },
       {
         label: '👤 Nombre Completo',
@@ -159,6 +161,8 @@ export class ConsultarHojasVidaPs implements OnInit {
         label: '📅 Fecha de Nacimiento',
         value: hoja.FECH_NACIMIENTO ? new Date(hoja.FECH_NACIMIENTO).toLocaleDateString('es-CO') : 'N/A'
       },
+      { label: '🗺️ Departamento Nacimiento', value: hoja.DEPARTAMENTO_NACIMIENTO || '' },
+      { label: '🏙️ Ciudad Nacimiento', value: hoja.CIUDAD_NACIMIENTO || '' },
       { label: '📊 Estado', value: hoja.ESTADO }
     ];
 
@@ -184,8 +188,8 @@ export class ConsultarHojasVidaPs implements OnInit {
       { label: '📞 Teléfono', value: hoja.TELEFONO },
       { label: '📱 Celular', value: hoja.CELULAR },
       { label: '🏠 Dirección', value: hoja.DIRECCION },
-      { label: '🏙️ Ciudad', value: hoja.CIUDAD },
-      { label: '🗺️ Departamento', value: hoja.DEPARTAMENTO }
+      { label: '🏙️ Ciudad donde reside', value: hoja.CIUDAD },
+      { label: '🗺️ Departamento donde reside', value: hoja.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
@@ -403,12 +407,20 @@ export class ConsultarHojasVidaPs implements OnInit {
     }
 
     const datosExportar = this.hojasVidaFiltradas.map((hoja) => ({
-      Documento: hoja.DOCUMENTO || '',
-      Nombre: `${hoja.NOMBRE || ''} ${hoja.PRIMER_APELLIDO || ''} ${hoja.SEGUNDO_APELLIDO || ''}`.trim(),
-      Teléfono: hoja.TELEFONO || '',
-      Ciudad: hoja.CIUDAD || '',
-      Correo: hoja.CORREO || '',
-      Estado: hoja.ESTADO || '',
+      'Numero Curso': hoja.NUMERO_CURSO || hoja.PKEYHOJAVIDA || '',
+      'Tipo Curso': hoja.TIPO_CURSO || hoja.PKEYASPIRANT || '',
+      'Documento': hoja.DOCUMENTO || '',
+      'Nombre': `${hoja.NOMBRE || ''} ${hoja.PRIMER_APELLIDO || ''} ${hoja.SEGUNDO_APELLIDO || ''}`.trim(),
+      'Edad': hoja.EDAD || '',
+      'Género': hoja.GENERO || '',
+      'Departamento Nacimiento': hoja.DEPARTAMENTO_NACIMIENTO || '',
+      'Ciudad Nacimiento': hoja.CIUDAD_NACIMIENTO || '',
+      'Teléfono': hoja.TELEFONO || '',
+      'Celular': hoja.CELULAR || '',
+      'Ciudad donde reside': hoja.CIUDAD || '',
+      'Departamento donde reside': hoja.DEPARTAMENTO || '',
+      'Correo': hoja.CORREO || '',
+      'Estado': hoja.ESTADO || '',
       'Estado Notificación': hoja.ESTADO_NOTIFICACION || ''
     }));
 

@@ -75,7 +75,13 @@
                   <button type="button" class="btn btn-outline-primary btn-sm my-1" (click)="verDetalle(caso)">Ver</button>
                   <button type="button" class="btn btn-outline-info btn-sm ms-1 my-1" (click)="enviarNotificacion(caso)">Enviar</button>
                   <button type="button" class="btn btn-outline-danger btn-sm ms-1 my-1" (click)="reagendarCita(caso)">Reagendar</button>
-                  <button type="button" class="btn btn-outline-success btn-sm ms-1 my-1" (click)="cargarResultadoEntrevista(caso)">Resultado Entrevista</button>
+                  <button
+                    *ngIf="tieneConsentimiento(caso)"
+                    type="button"
+                    class="btn btn-outline-success btn-sm ms-1 my-1"
+                    (click)="cargarResultadoEntrevista(caso)">
+                    Resultado Entrevista
+                  </button>
                 </td>
               </tr>
             </tbody>

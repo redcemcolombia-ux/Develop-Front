@@ -1,6 +1,9 @@
 <div class="card platform-card">
-  <div class="card-header platform-card__header platform-card__header--success d-flex justify-content-between align-items-center">
-    <h5 class="mb-0">Consulta de Hojas de Vida</h5>
+  <div class="card-header platform-card__header platform-card__header--danger casos-cerrados__header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Casos Cerrados - Apto / No Apto</h5>
+    <button type="button" class="btn casos-cerrados__export-button" (click)="exportarAExcel()" *ngIf="!isLoadingConsulta && hojasVidaFiltradas.length > 0">
+      <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+    </button>
   </div>
 
   <div class="card-body p-4">
@@ -9,24 +12,29 @@
       <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
-      <h5 class="text-muted">Consultando hojas de vida...</h5>
+      <h5 class="text-muted">Consultando casos cerrados...</h5>
       <p class="text-muted">Por favor espere un momento</p>
     </div>
 
     <!-- Contenido principal -->
     <div *ngIf="!isLoadingConsulta">
+      <!-- Info banner -->
+      <div class="alert alert-info mb-3" role="alert">
+        <strong>ℹ️ Información:</strong> Esta sección muestra únicamente los casos que han sido cerrados con estado "Apto" o "No Apto".
+      </div>
+
       <!-- Header con información y buscador -->
       <div class="row mb-3 g-2">
         <div class="col-12 col-lg-6">
           <div class="input-group">
             <span class="input-group-text">Buscar</span>
-            <input type="text" class="form-control" placeholder="Documento, nombre, apellido, correo o ciudad..."
+            <input type="text" class="form-control" placeholder="Documento, nombre, apellido, correo, ciudad o estado..."
               [(ngModel)]="searchTerm" (input)="filtrarHojasVida()">
           </div>
         </div>
         <div class="col-12 col-lg-6 d-flex justify-content-end align-items-center gap-2">
-          <span class="badge bg-primary fs-6">{{ hojasVidaFiltradas.length }}</span>
-          <span class="text-muted">hojas de vida encontradas</span>
+          <span class="badge bg-danger fs-6">{{ hojasVidaFiltradas.length }}</span>
+          <span class="text-muted">casos cerrados</span>
         </div>
       </div>
 
@@ -39,7 +47,8 @@
               <th>Nombre</th>
               <th class="d-none d-md-table-cell">Ciudad</th>
               <th class="d-none d-lg-table-cell">Correo</th>
-              <th class="text-center">Estado</th>
+              <th class="text-center">Estado Cierre</th>
+              <th class="text-center d-none d-md-table-cell">Fecha Cierre</th>
               <th class="text-center">Datos</th>
             </tr>
           </thead>
@@ -58,9 +67,12 @@
                 {{ hoja.CORREO?.toLowerCase() }}
               </td>
               <td class="text-center">
-                <span class="badge" [ngClass]="getEstadoBadgeClass(hoja)">
-                  {{ getEstadoCarga(hoja) }}
+                <span class="badge" [ngClass]="getBadgeClass(hoja.ESTADO_CIERRE)">
+                  {{ hoja.ESTADO_CIERRE }}
                 </span>
+              </td>
+              <td class="text-center d-none d-md-table-cell">
+                {{ formatearFecha(hoja.FECHA_CIERRE) }}
               </td>
               <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-primary" (click)="verDetalleHoja(hoja)">
@@ -76,15 +88,15 @@
       <div *ngIf="hojasVidaPaginadas.length === 0" class="text-center py-5">
         <h5 class="text-muted mb-2">No se encontraron resultados</h5>
         <p class="text-muted" *ngIf="searchTerm">
-          No hay hojas de vida que coincidan con: <strong>"{{ searchTerm }}"</strong>
+          No hay casos cerrados que coincidan con: <strong>"{{ searchTerm }}"</strong>
         </p>
         <p class="text-muted" *ngIf="!searchTerm">
-          No hay hojas de vida registradas en el sistema
+          No hay casos cerrados en el sistema
         </p>
       </div>
 
       <!-- Paginación -->
-      <nav *ngIf="totalPages > 1" aria-label="Paginación de hojas de vida">
+      <nav *ngIf="totalPages > 1" aria-label="Paginación de casos">
         <ul class="pagination justify-content-center mt-4">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <button class="page-link" (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1">

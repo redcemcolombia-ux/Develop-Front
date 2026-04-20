@@ -188,6 +188,8 @@ export class MisCasos implements OnInit {
     html += '<div class="row">';
 
     const basicFields = [
+      { label: 'Numero Curso', value: caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '' },
+      { label: 'Tipo Curso', value: caso.TIPO_CURSO || caso.PKEYASPIRANT || '' },
       { label: 'Documento', value: caso.DOCUMENTO },
       { label: 'Nombre Completo', value: `${caso.NOMBRE} ${caso.PRIMER_APELLIDO} ${caso.SEGUNDO_APELLIDO}`.trim() },
       { label: 'Edad', value: caso.EDAD },
@@ -196,6 +198,8 @@ export class MisCasos implements OnInit {
         label: 'Fecha de Nacimiento',
         value: caso.FECH_NACIMIENTO ? new Date(caso.FECH_NACIMIENTO).toLocaleDateString('es-CO') : 'N/A'
       },
+      { label: 'Departamento Nacimiento', value: caso.DEPARTAMENTO_NACIMIENTO || '' },
+      { label: 'Ciudad Nacimiento', value: caso.CIUDAD_NACIMIENTO || '' },
       { label: 'Estado', value: caso.ESTADO, isBadge: true }
     ];
 
@@ -207,7 +211,7 @@ export class MisCasos implements OnInit {
         const badgeClass = this.getEstadoBadgeClass(field.value as string);
         html += `<span class="badge ${badgeClass}" style="font-size: 1em;">${field.value}</span>`;
       } else {
-        html += `<span class="text-dark" style="font-size: 1.1em; font-family: monospace;">${field.value || 'N/A'}</span>`;
+        html += `<span class="text-dark" style="font-size: 1.1em; ">${field.value || 'N/A'}</span>`;
       }
       html += `</div>`;
     });
@@ -227,14 +231,14 @@ export class MisCasos implements OnInit {
       { label: 'Teléfono', value: caso.TELEFONO },
       { label: 'Celular', value: caso.CELULAR },
       { label: 'Dirección', value: caso.DIRECCION },
-      { label: 'Ciudad', value: caso.CIUDAD },
-      { label: 'Departamento', value: caso.DEPARTAMENTO }
+      { label: 'Ciudad donde reside', value: caso.CIUDAD },
+      { label: 'Departamento donde reside', value: caso.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
       html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
-      html += `<span class="text-dark" style="font-size: 1.1em; font-family: monospace;">${field.value || 'N/A'}</span>`;
+      html += `<span class="text-dark" style="font-size: 1.1em; ">${field.value || 'N/A'}</span>`;
       html += `</div>`;
     });
 
@@ -260,7 +264,7 @@ export class MisCasos implements OnInit {
     academicFields.forEach((field) => {
       html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
-      html += `<span class="text-dark" style="font-size: 1.1em; font-family: monospace;">${field.value || 'N/A'}</span>`;
+      html += `<span class="text-dark" style="font-size: 1.1em; ">${field.value || 'N/A'}</span>`;
       html += `</div>`;
     });
 
@@ -289,7 +293,7 @@ export class MisCasos implements OnInit {
     additionalFields.forEach((field) => {
       html += `<div class="col-md-6 mb-2 p-2">`;
       html += `<strong class="text-muted">${field.label}:</strong><br>`;
-      html += `<span class="text-dark" style="font-size: 1.1em; font-family: monospace;">${field.value || 'N/A'}</span>`;
+      html += `<span class="text-dark" style="font-size: 1.1em; ">${field.value || 'N/A'}</span>`;
       html += `</div>`;
     });
 
@@ -314,7 +318,7 @@ export class MisCasos implements OnInit {
         if (field.value && field.value !== 'N/A') {
           html += `<div class="col-md-6 mb-2 p-2">`;
           html += `<strong class="text-muted">${field.label}:</strong><br>`;
-          html += `<span class="text-dark" style="font-size: 1.1em; font-family: monospace;">${field.value}</span>`;
+          html += `<span class="text-dark" style="font-size: 1.1em;">${field.value}</span>`;
           html += `</div>`;
         }
       });
@@ -333,11 +337,11 @@ export class MisCasos implements OnInit {
     if (caso.PDF_URL) {
       html += '<div class="card mb-3">';
       html += '<div class="card-header bg-info text-white">';
-      html += '<h6 class="mb-0">Historial Clinico</h6>';
+      html += '<h6 class="mb-0">Examenes</h6>';
       html += '</div>';
       html += '<div class="card-body text-center">';
       html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-success">Disponible</span></p>`;
-      html += '<button id="verPdfBtn" class="btn btn-primary">Ver H-Clinico</button>';
+      html += '<button id="verPdfBtn" class="btn btn-primary">Ver Examenes</button>';
       html += '</div></div>';
     }
 
@@ -397,7 +401,7 @@ export class MisCasos implements OnInit {
         const fileURL = URL.createObjectURL(blob);
 
         Swal.fire({
-          title: 'Historial Clinico',
+          title: 'Examenes',
           html: `
             <div style="width: 100%; height: 600px;">
               <iframe src="${fileURL}" width="100%" height="100%" style="border: none;"></iframe>
@@ -745,18 +749,24 @@ export class MisCasos implements OnInit {
     }
 
     const datosExport = this.filtrados.map((caso) => ({
-      Documento: caso.DOCUMENTO,
+      'Numero Curso': caso.NUMERO_CURSO || caso.PKEYHOJAVIDA || '',
+      'Tipo Curso': caso.TIPO_CURSO || caso.PKEYASPIRANT || '',
+      'Documento': caso.DOCUMENTO,
       'Nombre Completo': `${caso.NOMBRE} ${caso.PRIMER_APELLIDO} ${caso.SEGUNDO_APELLIDO}`,
-      Edad: caso.EDAD,
-      Género: caso.GENERO,
-      Exámenes: caso.EXAMENES || 'N/A',
+      'Edad': caso.EDAD,
+      'Género': caso.GENERO,
+      'Departamento Nacimiento': caso.DEPARTAMENTO_NACIMIENTO || '',
+      'Ciudad Nacimiento': caso.CIUDAD_NACIMIENTO || '',
+      'Exámenes': caso.EXAMENES || 'N/A',
       'Fecha/Hora Cita': this.formatearFechaHora(caso.FECHA_HORA),
-      IPS: caso.NOMBREIPS || 'N/A',
-      Recomendaciones: caso.RECOMENDACIONES || 'N/A',
-      Correo: caso.CORREO,
-      Teléfono: caso.TELEFONO,
-      Ciudad: caso.CIUDAD,
-      Estado: caso.ESTADO
+      'IPS': caso.NOMBREIPS || 'N/A',
+      'Recomendaciones': caso.RECOMENDACIONES || 'N/A',
+      'Correo': caso.CORREO,
+      'Teléfono': caso.TELEFONO,
+      'Celular': caso.CELULAR,
+      'Ciudad donde reside': caso.CIUDAD,
+      'Departamento donde reside': caso.DEPARTAMENTO,
+      'Estado': caso.ESTADO
     }));
 
     const ws = XLSX.utils.json_to_sheet(datosExport);

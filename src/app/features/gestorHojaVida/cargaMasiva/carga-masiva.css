@@ -1,4 +1,8 @@
 /* Estilos para dark mode */
+:host-context(.theme-dark) .carga-masiva__instructions-title {
+  color: inherit;
+}
+
 :host-context(.theme-dark) input[type="file"].form-control {
   background: #1a1d29;
   color: #e5e7eb;

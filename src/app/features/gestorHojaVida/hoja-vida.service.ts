@@ -64,8 +64,8 @@ export class HojaVidaService {
     const errors: string[] = [];
 
     // Validaciones de campos requeridos
-    if (!hojaVida.PKEYHOJAVIDA) errors.push('ID Hoja de Vida es requerido');
-    if (!hojaVida.PKEYASPIRANT) errors.push('ID Aspirante es requerido');
+    if (!hojaVida.NUMERO_CURSO) errors.push('Numero Curso es requerido');
+    if (!hojaVida.TIPO_CURSO) errors.push('Tipo Curso es requerido');
     if (!hojaVida.CODIPROGACAD) errors.push('Programa Académico es requerido');
     if (!hojaVida.ANNOPERIACAD) errors.push('Año Período Académico es requerido');
     if (!hojaVida.NUMEPERIACAD) errors.push('Número Período Académico es requerido');
@@ -76,6 +76,8 @@ export class HojaVidaService {
     if (!hojaVida.EDAD || hojaVida.EDAD < 16 || hojaVida.EDAD > 35) errors.push('Edad debe estar entre 16 y 35');
     if (!hojaVida.GENERO) errors.push('Género es requerido');
     if (!hojaVida.FECH_NACIMIENTO) errors.push('Fecha de Nacimiento es requerida');
+    if (!hojaVida.DEPARTAMENTO_NACIMIENTO) errors.push('Departamento de Nacimiento es requerido');
+    if (!hojaVida.CIUDAD_NACIMIENTO) errors.push('Ciudad de Nacimiento es requerida');
     if (!hojaVida.CORREO) errors.push('Correo es requerido');
     if (!hojaVida.CELULAR) errors.push('Celular es requerido');
     if (!hojaVida.DIRECCION) errors.push('Dirección es requerida');
@@ -114,5 +116,9 @@ export class HojaVidaService {
       headers,
       responseType: 'blob'
     });
+  }
+
+  gestionarCierre(payload: any): Observable<any> {
+    return this.http.put<any>(`${this.baseApi}/hojas-vida/cierre/gestionar`, payload, { headers: this.getHeaders() });
   }
 }
