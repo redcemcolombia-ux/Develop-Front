@@ -17,7 +17,7 @@
       <a
         class="menu-item d-grid"
         title="Admin"
-        [class.active]="activePanel === 'registroUsuarios' || activePanel === 'listadoUsuarios'"
+        [class.active]="activePanel === 'registroUsuarios' || activePanel === 'listadoUsuarios' || activePanel === 'controlProcesos'"
         [class.expanded]="adminMenuExpanded"
         (click)="toggleAdminMenu()"
       >
@@ -44,6 +44,16 @@
         >
           <span class="icon">📋</span>
           <span class="text">Listado Usuario</span>
+        </a>
+        <a
+          *ngIf="canViewAplicaciones"
+          class="submenu-item"
+          title="Control de procesos"
+          [class.active]="activePanel === 'controlProcesos'"
+          (click)="openControlProcesos()"
+        >
+          <span class="icon">⚙️</span>
+          <span class="text">Control de procesos</span>
         </a>
       </div>
     </div>

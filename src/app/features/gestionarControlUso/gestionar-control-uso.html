@@ -1,0 +1,113 @@
+<div class="card platform-card">
+  <div
+    class="card-header platform-card__header platform-card__header--primary"
+    style="background-color: #0d6efd; color: #ffffff"
+  >
+    <h5 class="mb-0">Gestionar Control de Uso</h5>
+  </div>
+
+  <div class="card-body p-3">
+    <!-- Información del Usuario (Compacta) -->
+    <div class="alert alert-info mb-3 py-2">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <small><strong>Usuario:</strong> {{ usuario?.Cr_Nombre_Usuario }}</small>
+        </div>
+        <div class="col-md-4">
+          <small><strong>Nombre:</strong> {{ usuario?.Cr_Pe_Codigo?.Pe_Nombre }} {{ usuario?.Cr_Pe_Codigo?.Pe_Apellido }}</small>
+        </div>
+        <div class="col-md-2">
+          <small><strong>IPS:</strong> {{ usuario?.Cr_Ips?.NOMBRE_IPS || 'N/A' }}</small>
+        </div>
+        <div class="col-md-2">
+          <small><strong>Casos Actuales:</strong> <span class="badge bg-primary">{{ usuario?.control_uso?.co_cantidad || 0 }}</span></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario (Compacto) -->
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label for="co_cantidad" class="form-label mb-1">
+            <strong>Cantidad de Casos <span class="text-danger">*</span></strong>
+          </label>
+          <input
+            type="number"
+            id="co_cantidad"
+            class="form-control"
+            formControlName="co_cantidad"
+            placeholder="Ej: 10"
+            min="1"
+            [class.is-invalid]="form.get('co_cantidad')?.invalid && form.get('co_cantidad')?.touched"
+          />
+          <div class="invalid-feedback" *ngIf="form.get('co_cantidad')?.invalid && form.get('co_cantidad')?.touched">
+            <span *ngIf="form.get('co_cantidad')?.hasError('required')">Requerido</span>
+            <span *ngIf="form.get('co_cantidad')?.hasError('min')">Mínimo 1</span>
+            <span *ngIf="form.get('co_cantidad')?.hasError('pattern')">Solo números</span>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <button type="button" class="btn btn-secondary me-2" (click)="volver()" [disabled]="isLoading">
+            Volver
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading || form.invalid">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1"></span>
+            {{ isLoading ? 'Guardando...' : 'Asignar Casos' }}
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <hr class="my-3">
+
+    <!-- Historial -->
+    <div class="historial-section">
+      <h6 class="mb-3"><strong>Historial de Asignaciones</strong></h6>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoadingHistorial" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando historial...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoadingHistorial && historial.length === 0" class="text-center py-4">
+        <h6 class="text-muted">No hay registros de historial para este usuario</h6>
+      </div>
+
+      <!-- Tabla de Historial -->
+      <div *ngIf="!isLoadingHistorial && historial.length > 0">
+        <div class="platform-table__wrap">
+          <table class="table table-striped table-hover platform-table">
+            <thead class="table-dark">
+              <tr>
+                <th class="text-center">Cantidad</th>
+                <th class="text-center">Estado</th>
+                <th>Fecha Creación</th>
+                <th>Última Actualización</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let registro of historial">
+                <td class="text-center"><strong>{{ registro.co_cantidad }}</strong></td>
+                <td class="text-center">
+                  <span class="badge" [class.bg-success]="registro.co_estado" [class.bg-secondary]="!registro.co_estado">
+                    {{ registro.co_estado ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>{{ registro.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ registro.updatedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3">
+          <small class="text-muted"><strong>Total de registros:</strong> {{ historial.length }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

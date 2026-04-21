@@ -3,7 +3,7 @@
     class="card-header platform-card__header platform-card__header--primary"
     style="background-color: #0d6efd; color: #ffffff"
   >
-    <h5 class="mb-0">Listado de Usuarios</h5>
+    <h5 class="mb-0">{{ panelTitle }}</h5>
   </div>
 
   <div class="card-body p-4">
@@ -47,6 +47,7 @@
               <th>Documento</th>
               <th>Perfil</th>
               <th class="d-none d-xl-table-cell">Empresa</th>
+              <th *ngIf="panelTitle === 'Control de Procesos'" class="text-center"># Casos</th>
               <th class="text-center">Acciones</th>
             </tr>
           </thead>
@@ -62,6 +63,9 @@
                 </span>
               </td>
               <td class="d-none d-xl-table-cell">{{ (usuario.Cr_Ips?.NOMBRE_IPS || usuario.Cr_Empresa || 'N/A') | titlecase }}</td>
+              <td *ngIf="panelTitle === 'Control de Procesos'" class="text-center">
+                <strong>{{ usuario.control_uso?.co_cantidad || 0 }}</strong>
+              </td>
               <td class="text-center">
                 <button type="button" class="btn btn-outline-primary btn-sm my-1" (click)="verDetalle(usuario)">
                   Ver

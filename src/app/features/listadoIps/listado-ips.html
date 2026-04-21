@@ -45,7 +45,7 @@
             <tr>
               <th>Nombre IPS</th>
               <th class="d-none d-md-table-cell">NIT</th>
-              <th>Ciudad</th>
+              <th class="d-none">Ciudad</th>
               <th>Estado</th>
               <th>Datos</th>
               <th class="text-center">Editar</th>
@@ -57,7 +57,7 @@
                 <strong>{{ (ips.NOMBRE_IPS || '') | titlecase }}</strong>
               </td>
               <td class="d-none d-md-table-cell">{{ ips.NIT }}</td>
-              <td>{{ (ips.CIUDAD || '') | titlecase }}</td>
+              <td class="d-none">{{ (ips.CIUDAD || '') | titlecase }}</td>
               <td>
                 <span class="badge" [ngClass]="getEstadoBadgeClass(ips.ESTADO)">
                   {{ ips.ESTADO }}
@@ -67,7 +67,7 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" (click)="verDetalle(ips)">Ver</button>
               </td>
               <td class="text-center">
-                <button type="button" class="btn btn-sm platform-btn-edit" (click)="onEditarIps(ips)">Editar</button>
+                <button type="button" class="btn btn-sm btn-danger" (click)="onEditarIps(ips)">Editar</button>
               </td>
             </tr>
           </tbody>

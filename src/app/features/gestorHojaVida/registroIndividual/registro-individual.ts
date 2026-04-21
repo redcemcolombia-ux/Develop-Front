@@ -18,7 +18,7 @@ export class RegistroIndividual implements OnInit {
   submitted = false;
 
   generos = ['Masculino', 'Femenino', 'Otro'];
-  estados = ['Activo', 'Pendiente', 'Rechazado', 'Admitido'];
+  estados = ['Inscrito', 'Abandono'];
   estratos = ['1', '2', '3', '4', '5', '6'];
   tiposMedio = ['Radio', 'TV', 'Web', 'Prensa', 'Redes Sociales', 'Referido'];
   gruposMinoritarios = ['Ninguno', 'Étnico', 'Indígena', 'Afrodescendiente', 'ROM', 'Otro'];
@@ -46,7 +46,7 @@ export class RegistroIndividual implements OnInit {
       celular: ['', [Validators.required, Validators.pattern(/^\d{7,12}$/)]],
       direccion: ['', [Validators.required, Validators.maxLength(200)]],
       ciudad: ['', [Validators.required]],
-      estado: ['Activo', [Validators.required]],
+      estado: ['Inscrito', [Validators.required]],
       departamento: ['', [Validators.required]],
       regional: ['', [Validators.required]],
       complementaria1: ['', [Validators.maxLength(200)]],

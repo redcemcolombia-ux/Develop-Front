@@ -6,6 +6,8 @@ export type AsidePanelId =
   | 'dashboard'
   | 'registroUsuarios'
   | 'listadoUsuarios'
+  | 'controlProcesos'
+  | 'gestionarControlUso'
   | 'editarUsuario'
   | 'registroIps'
   | 'listadoIps'
@@ -160,6 +162,7 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
         break;
@@ -167,6 +170,7 @@ export class Aside implements OnInit {
       case 'cliente gestor':
         this.canViewGestorHojaVida = true;
         this.canViewConsultaHojas = true;
+        this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
         break;
@@ -176,6 +180,7 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
         this.canViewGraficas = true;
@@ -183,6 +188,7 @@ export class Aside implements OnInit {
 
       case 'cliente informes':
         this.canViewGestorHojaVida = true;
+        this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
         this.canViewGraficas = true;
@@ -234,6 +240,12 @@ export class Aside implements OnInit {
   openListadoUsuarios(): void {
     if (this.canViewGestorUsuarios) {
       this.selectPanel.emit('listadoUsuarios');
+    }
+  }
+
+  openControlProcesos(): void {
+    if (this.canViewAplicaciones) {
+      this.selectPanel.emit('controlProcesos');
     }
   }
 
@@ -423,4 +435,3 @@ export class Aside implements OnInit {
     }
   }
 }
-

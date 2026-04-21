@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(ts\\)$\")",
+      "Bash(cd:*)",
+      "Bash(ls -la ./src/styles/*/)",
+      "Bash(ng serve:*)",
+      "Bash(find C:UsersalejoOneDriveEscritorioRedCemColombiaRedCemsrcappfeatures -name *login* -type f)"
+    ]
+  }
+}

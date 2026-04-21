@@ -67,6 +67,25 @@
         </div>
       </section>
 
+      <section *ngIf="activePanel() === 'controlProcesos'" class="row g-4">
+        <div class="col-12">
+          <app-listado-usuarios
+            [panelTitle]="'Control de Procesos'"
+            (editarUsuario)="onEditarUsuario($event)"
+            (gestionarControlUso)="onGestionarControlUso($event)"
+          ></app-listado-usuarios>
+        </div>
+      </section>
+
+      <section *ngIf="showGestionarControlUso()" class="row g-4">
+        <div class="col-12">
+          <app-gestionar-control-uso
+            [usuario]="usuarioControlUso"
+            (volverListado)="onVolverAControlProcesos()"
+          ></app-gestionar-control-uso>
+        </div>
+      </section>
+
       <section *ngIf="showEditarUsuario()" class="row g-4">
         <div class="col-12">
           <app-editar-usuario [usuario]="usuarioAEditar" (volverListado)="onVolverAListado()"></app-editar-usuario>

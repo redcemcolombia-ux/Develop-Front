@@ -362,6 +362,7 @@ export class GestorIpsCitas implements OnInit {
     this.service.tomarCaso(payload).subscribe({
       next: (resp) => {
         if (resp.error === 0) {
+          const casosRestantes = (resp.response as any)?.casos_restantes;
           Swal.fire({
             title: '¡Cita Agendada Exitosamente!',
             html: `
@@ -371,6 +372,7 @@ export class GestorIpsCitas implements OnInit {
                 <p><strong>Fecha y Hora:</strong> ${new Date(datos.fechaHora).toLocaleString('es-CO')}</p>
                 <p><strong>Exámenes:</strong> ${datos.examenes}</p>
                 <p><strong>Recomendaciones:</strong> ${datos.recomendaciones}</p>
+                ${casosRestantes !== undefined ? `<hr><p class="text-muted"><strong>Casos restantes:</strong> ${casosRestantes}</p>` : ''}
               </div>
             `,
             icon: 'success',
@@ -380,17 +382,46 @@ export class GestorIpsCitas implements OnInit {
           this.consultar(false);
           return;
         }
+
+        // Manejo específico para error de casos no disponibles
+        const mensaje = resp.response?.mensaje || '';
+        if (mensaje.includes('No tiene casos disponibles') || mensaje.includes('comuníquese con el administrador')) {
+          Swal.fire({
+            title: 'Sin Casos Disponibles',
+            text: 'No tiene casos disponibles. Por favor, comuníquese con el administrador para obtener más casos.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#ffc107'
+          });
+          return;
+        }
+
+        // Otros errores
         Swal.fire({
           title: 'Error al Agendar',
-          text: resp.response?.mensaje || 'No se pudo agendar la cita',
+          text: mensaje || 'No se pudo agendar la cita',
           icon: 'error',
           confirmButtonText: 'Entendido'
         });
       },
-      error: () => {
+      error: (err) => {
+        const mensaje = err.error?.response?.mensaje || '';
+
+        // Verificar si el error es por falta de casos
+        if (mensaje.includes('No tiene casos disponibles') || mensaje.includes('comuníquese con el administrador')) {
+          Swal.fire({
+            title: 'Sin Casos Disponibles',
+            text: 'No tiene casos disponibles. Por favor, comuníquese con el administrador para obtener más casos.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#ffc107'
+          });
+          return;
+        }
+
         Swal.fire({
           title: 'Error al Agendar',
-          text: 'No se pudo agendar la cita. Por favor, intente nuevamente.',
+          text: mensaje || 'No se pudo agendar la cita. Por favor, intente nuevamente.',
           icon: 'error',
           confirmButtonText: 'Entendido'
         });

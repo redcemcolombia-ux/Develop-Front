@@ -22,6 +22,14 @@ export interface Persona {
   updatedAt?: string;
 }
 
+export interface ControlUso {
+  id?: string;
+  co_cantidad: number;
+  co_estado: boolean;
+  co_fecha_registro: string;
+  co_hora_registro: string;
+}
+
 export interface Usuario {
   _id: string;
   Cr_Nombre_Usuario: string;
@@ -30,6 +38,7 @@ export interface Usuario {
   Cr_Estado: string;
   Cr_Pe_Codigo: Persona;
   Cr_Ips?: any;
+  control_uso?: ControlUso;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -54,6 +63,15 @@ export class ListadoUsuariosService {
   consultarUsuarios(): Observable<ApiResponse<ConsultarUsuariosResponse>> {
     const headers = this.buildAuthHeaders();
     const url = `${this.baseUrl}/api/users/consultar`;
+
+    return this.http
+      .get<ApiResponse<ConsultarUsuariosResponse>>(url, { headers })
+      .pipe(catchError((e) => this.handle<ConsultarUsuariosResponse>(e)));
+  }
+
+  consultarUsuariosControlUso(): Observable<ApiResponse<ConsultarUsuariosResponse>> {
+    const headers = this.buildAuthHeaders();
+    const url = `${this.baseUrl}/api/control-uso-ips/listar-usuarios`;
 
     return this.http
       .get<ApiResponse<ConsultarUsuariosResponse>>(url, { headers })

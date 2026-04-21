@@ -36,13 +36,14 @@ import { CasosCerrados } from '../gestorHojaVida/casosCerrados/casos-cerrados';
 import { CasosAplazados } from '../gestorHojaVida/casosAplazados/casos-aplazados';
 import { GraficasHojasVida } from '../gestorHojaVida/graficasHojasVida/graficas-hojas-vida';
 import { Aplicaciones } from '../aplicaciones/aplicaciones';
+import { GestionarControlUso } from '../gestionarControlUso/gestionar-control-uso';
 
 type PanelId = AsidePanelId;
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones],
+  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -156,8 +157,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     return (this.activePanel() as unknown as string) === 'editarIps';
   }
 
+  showGestionarControlUso(): boolean {
+    return (this.activePanel() as unknown as string) === 'gestionarControlUso';
+  }
+
   usuarioAEditar: Usuario | null = null;
   ipsAEditar: Ips | null = null;
+  usuarioControlUso: Usuario | null = null;
 
   readonly userName = signal('Usuario');
   readonly userEmail = signal('');
@@ -286,6 +292,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   onVolverAListadoIps(): void {
     this.ipsAEditar = null;
     this.activePanel.set('listadoIps');
+  }
+
+  onGestionarControlUso(usuario: Usuario): void {
+    this.usuarioControlUso = usuario;
+    this.activePanel.set('gestionarControlUso');
+  }
+
+  onVolverAControlProcesos(): void {
+    this.usuarioControlUso = null;
+    this.activePanel.set('controlProcesos');
   }
 
   onCloseAside(): void {

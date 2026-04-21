@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit, Output, EventEmitter, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, Output, EventEmitter, Input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
@@ -18,7 +18,9 @@ export class ListadoUsuarios implements OnInit {
   private readonly service = inject(ListadoUsuariosService);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  @Input() panelTitle = 'Listado de Usuarios';
   @Output() editarUsuario = new EventEmitter<Usuario>();
+  @Output() gestionarControlUso = new EventEmitter<Usuario>();
 
   usuarios: Usuario[] = [];
   filtrados: Usuario[] = [];
@@ -38,7 +40,12 @@ export class ListadoUsuarios implements OnInit {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.service.consultarUsuarios().subscribe({
+    const isControlProcesos = this.panelTitle === 'Control de Procesos';
+    const observable = isControlProcesos
+      ? this.service.consultarUsuariosControlUso()
+      : this.service.consultarUsuarios();
+
+    observable.subscribe({
       next: (resp) => {
         if (resp.error === 0) {
           this.usuarios = resp.response?.usuarios ?? [];
@@ -141,7 +148,11 @@ export class ListadoUsuarios implements OnInit {
   }
 
   onEditarUsuario(usuario: Usuario): void {
-    this.editarUsuario.emit(usuario);
+    if (this.panelTitle === 'Control de Procesos') {
+      this.gestionarControlUso.emit(usuario);
+    } else {
+      this.editarUsuario.emit(usuario);
+    }
   }
 
   verDetalle(usuario: Usuario): void {
@@ -298,9 +309,11 @@ export class ListadoUsuarios implements OnInit {
       return;
     }
 
+    const isControlProcesos = this.panelTitle === 'Control de Procesos';
+
     const datosExport = this.filtrados.map((usuario) => {
       const persona = usuario.Cr_Pe_Codigo;
-      return {
+      const baseData: any = {
         Nombre: persona.Pe_Nombre,
         Apellido: persona.Pe_Apellido,
         'Segundo Apellido': persona.Pe_Seg_Apellido || 'N/A',
@@ -315,6 +328,15 @@ export class ListadoUsuarios implements OnInit {
         Departamento: persona.Pe_Departamento,
         'IPS/Empresa': usuario.Cr_Ips?.NOMBRE_IPS || usuario.Cr_Empresa || 'N/A'
       };
+
+      if (isControlProcesos) {
+        baseData['# Casos'] = usuario.control_uso?.co_cantidad || 0;
+        baseData['Estado Control'] = usuario.control_uso?.co_estado ? 'Activo' : 'Inactivo';
+        baseData['Fecha Registro'] = usuario.control_uso?.co_fecha_registro || 'sin gestion';
+        baseData['Hora Registro'] = usuario.control_uso?.co_hora_registro || 'sin gestion';
+      }
+
+      return baseData;
     });
 
     const ws = XLSX.utils.json_to_sheet(datosExport);
@@ -322,7 +344,8 @@ export class ListadoUsuarios implements OnInit {
     XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
 
     const fecha = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `usuarios_${fecha}.xlsx`);
+    const filename = isControlProcesos ? `control_procesos_${fecha}.xlsx` : `usuarios_${fecha}.xlsx`;
+    XLSX.writeFile(wb, filename);
 
     Swal.fire({
       title: '¡Exportación Exitosa!',

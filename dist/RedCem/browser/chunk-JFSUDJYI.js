@@ -1,1 +1,0 @@
-import{b as a}from"./chunk-VTSTHRVI.js";import"./chunk-Y33D6KUL.js";import"./chunk-PXOT2LYC.js";import"./chunk-NOWTGZ2U.js";import"./chunk-SBCSJFBE.js";import"./chunk-VT6MJIQY.js";export{a as ConsultaHojasVida};
