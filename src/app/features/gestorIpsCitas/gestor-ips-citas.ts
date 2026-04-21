@@ -187,8 +187,8 @@ export class GestorIpsCitas implements OnInit {
       { label: '📞 Teléfono', value: hoja.TELEFONO },
       { label: '📱 Celular', value: hoja.CELULAR },
       { label: '🏠 Dirección', value: hoja.DIRECCION },
-      { label: '🏙️ Ciudad donde reside', value: hoja.CIUDAD },
-      { label: '🗺️ Departamento donde reside', value: hoja.DEPARTAMENTO }
+      { label: '🏙️ Ciudad Examenes', value: hoja.CIUDAD },
+      { label: '🗺️ Departamento Examenes', value: hoja.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
@@ -454,8 +454,8 @@ export class GestorIpsCitas implements OnInit {
       Teléfono: hoja.TELEFONO,
       Celular: hoja.CELULAR,
       Dirección: hoja.DIRECCION,
-      'Ciudad donde reside': hoja.CIUDAD,
-      'Departamento donde reside': hoja.DEPARTAMENTO,
+      'Ciudad Examenes': hoja.CIUDAD,
+      'Departamento Examenes': hoja.DEPARTAMENTO,
       Estado: hoja.ESTADO,
       Regional: hoja.REGIONAL,
       'Código Inscripción': hoja.CODIGO_INSCRIPCION,

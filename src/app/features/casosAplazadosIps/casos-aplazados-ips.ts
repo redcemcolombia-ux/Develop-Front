@@ -222,8 +222,8 @@ export class CasosAplazadosIps implements OnInit {
       { label: 'Teléfono', value: caso.TELEFONO },
       { label: 'Celular', value: caso.CELULAR },
       { label: 'Dirección', value: caso.DIRECCION },
-      { label: 'Ciudad donde reside', value: caso.CIUDAD },
-      { label: 'Departamento donde reside', value: caso.DEPARTAMENTO }
+      { label: 'Ciudad Examenes', value: caso.CIUDAD },
+      { label: 'Departamento Examenes', value: caso.DEPARTAMENTO }
     ];
 
     contactFields.forEach((field) => {
@@ -841,8 +841,8 @@ export class CasosAplazadosIps implements OnInit {
       'Correo': caso.CORREO,
       'Teléfono': caso.TELEFONO,
       'Celular': caso.CELULAR,
-      'Ciudad donde reside': caso.CIUDAD,
-      'Departamento donde reside': caso.DEPARTAMENTO,
+      'Ciudad Examenes': caso.CIUDAD,
+      'Departamento Examenes': caso.DEPARTAMENTO,
       'Estado': caso.ESTADO,
       'PDF Cargado': caso.PDF_URL ? 'Sí' : 'No',
       'Biometría Cargada': caso.RUTA_BIOMETRIA ? 'Sí' : 'No'
