@@ -47,7 +47,7 @@
                 <th>Nombre Completo</th>
                 <th class="d-none d-md-table-cell">Correo</th>
                 <th>Ciudad</th>
-                <th class="d-none">Estado</th>
+                <th>Estado</th>
                 <th class="text-center">Acciones</th>
               </tr>
             </thead>
@@ -59,24 +59,15 @@
                 </td>
                 <td class="d-none d-md-table-cell">{{ caso.CORREO }}</td>
                 <td>{{ (caso.CIUDAD || '') | titlecase }}</td>
-                <td class="d-none">
-                  <span
-                    *ngIf="caso.ESTADO_NOTIFICACION"
-                    class="badge"
-                    [ngClass]="getNotificacionBadgeClass(caso.ESTADO_NOTIFICACION)"
-                  >
-                    {{ caso.ESTADO_NOTIFICACION }}
-                  </span>
-                  <span *ngIf="!caso.ESTADO_NOTIFICACION" class="badge" [ngClass]="getBadgeClass(caso.ESTADO)">
-                    {{ caso.ESTADO || 'N/A' }}
+                <td>
+                  <span class="badge" [ngClass]="getEstadoDocumentos(caso).clase">
+                    {{ getEstadoDocumentos(caso).texto }}
                   </span>
                 </td>
                 <td class="text-center">
                   <button type="button" class="btn btn-outline-primary btn-sm my-1" (click)="verDetalle(caso)">Ver</button>
-                  <button type="button" class="btn btn-outline-info btn-sm ms-1 my-1" (click)="enviarNotificacion(caso)">Enviar</button>
                   <button type="button" class="btn btn-outline-danger btn-sm ms-1 my-1" (click)="reagendarCita(caso)">Reagendar</button>
                   <button
-                    *ngIf="tieneConsentimiento(caso)"
                     type="button"
                     class="btn btn-outline-success btn-sm ms-1 my-1"
                     (click)="cargarResultadoEntrevista(caso)">

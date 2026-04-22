@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { AuthService } from '../../core/auth.service';
 import { PsicologiaGestionService } from '../psicologiaGestion/psicologia-gestion.service';
+import { HojaVidaService } from '../gestorHojaVida/hoja-vida.service';
 
 @Component({
   selector: 'app-consultar-hojas-vida-ps',
@@ -15,6 +16,7 @@ import { PsicologiaGestionService } from '../psicologiaGestion/psicologia-gestio
 export class ConsultarHojasVidaPs implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly service = inject(PsicologiaGestionService);
+  private readonly hojaVidaService = inject(HojaVidaService);
 
   isLoading = false;
   hojasVidaExistentes: any[] = [];
@@ -253,6 +255,58 @@ export class ConsultarHojasVidaPs implements OnInit {
 
     html += '</div></div></div>';
 
+    // Sección de PDF Historial Clínico (Exámenes)
+    if (hoja.PDF_URL && hoja.PDF_URL !== null && hoja.PDF_URL.trim() !== '') {
+      html += '<div class="card mb-3 shadow">';
+      html += '<div class="card-header bg-info text-white">';
+      html += '<h6 class="mb-0">📄 Exámenes</h6>';
+      html += '</div>';
+      html += '<div class="card-body text-center">';
+      html += `<p class="mt-2 mb-3"><strong>Archivo PDF disponible</strong></p>`;
+      html += `<button type="button" class="btn btn-primary" id="verPdfExamenesBtn">Ver Exámenes</button>`;
+      html += '</div></div>';
+    }
+
+    // Sección de Biometría
+    if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta !== null && hoja.RUTA_BIOMETRIA.ruta !== undefined) {
+      html += '<div class="card mb-3 shadow">';
+      html += '<div class="card-header bg-warning text-dark">';
+      html += '<h6 class="mb-0">👤 Biometría</h6>';
+      html += '</div>';
+      html += '<div class="card-body text-center">';
+      html += `<p class="mt-2 mb-3"><strong>Biometría cargada</strong></p>`;
+      html += `<button type="button" class="btn btn-warning" id="verPdfBiometriaBtn">Ver Biometría</button>`;
+      html += '</div></div>';
+    }
+
+    // Sección de Consentimiento
+    if (hoja.RUTA_NOTIFICACION_RECIBIDA && hoja.RUTA_NOTIFICACION_RECIBIDA.trim() !== '') {
+      html += '<div class="card mb-3 shadow">';
+      html += '<div class="card-header bg-danger text-white">';
+      html += '<h6 class="mb-0">📄 Consentimiento</h6>';
+      html += '</div>';
+      html += '<div class="card-body text-center">';
+      html += `<p class="mt-2 mb-3"><strong>Consentimiento Recibido</strong></p>`;
+      html += `<button type="button" class="btn btn-danger text-white" id="verPdfConsentimientoBtn">Ver Consentimiento</button>`;
+      html += '</div></div>';
+    }
+
+    // Sección de Resultados Entrevista Psicología
+    const tienePsicologia = hoja.RUTA_PSICOLOGIA &&
+      ((typeof hoja.RUTA_PSICOLOGIA === 'string' && hoja.RUTA_PSICOLOGIA.trim() !== '') ||
+       (typeof hoja.RUTA_PSICOLOGIA === 'object' && hoja.RUTA_PSICOLOGIA.ruta !== null && hoja.RUTA_PSICOLOGIA.ruta !== undefined));
+
+    if (tienePsicologia) {
+      html += '<div class="card mb-3 shadow">';
+      html += '<div class="card-header bg-success text-white">';
+      html += '<h6 class="mb-0">🧠 Resultados Entrevista Psicología</h6>';
+      html += '</div>';
+      html += '<div class="card-body text-center">';
+      html += `<p class="mt-2 mb-3"><strong>Resultado de entrevista cargado</strong></p>`;
+      html += `<button type="button" class="btn btn-success" id="verPdfPsicologiaBtn">Ver Resultados</button>`;
+      html += '</div></div>';
+    }
+
     html += '</div>';
 
     Swal.fire({
@@ -261,11 +315,104 @@ export class ConsultarHojasVidaPs implements OnInit {
       icon: 'info',
       width: '900px',
       showCloseButton: true,
-      confirmButtonText: 'Cerrar'
+      confirmButtonText: 'Cerrar',
+      didOpen: () => {
+        if (hoja.PDF_URL) {
+          const verPdfExamenesBtn = document.getElementById('verPdfExamenesBtn');
+          if (verPdfExamenesBtn) {
+            verPdfExamenesBtn.onclick = () => this.verPDFExamenes(hoja.PDF_URL!);
+          }
+        }
+        if (hoja.RUTA_BIOMETRIA && hoja.RUTA_BIOMETRIA.ruta) {
+          const verPdfBiometriaBtn = document.getElementById('verPdfBiometriaBtn');
+          if (verPdfBiometriaBtn) {
+            verPdfBiometriaBtn.onclick = () => this.verPDFBiometria(hoja);
+          }
+        }
+        if (hoja.RUTA_NOTIFICACION_RECIBIDA) {
+          const verPdfConsentimientoBtn = document.getElementById('verPdfConsentimientoBtn');
+          if (verPdfConsentimientoBtn) {
+            verPdfConsentimientoBtn.onclick = () => this.verPDFConsentimiento(hoja);
+          }
+        }
+        if (hoja.RUTA_PSICOLOGIA) {
+          const verPdfPsicologiaBtn = document.getElementById('verPdfPsicologiaBtn');
+          if (verPdfPsicologiaBtn) {
+            verPdfPsicologiaBtn.onclick = () => this.verPDFPsicologia(hoja);
+          }
+        }
+      }
     });
   }
 
-  verPDF(filename: string): void {
+  verPDFExamenes(pdfUrl: string): void {
+    const filename = pdfUrl.split('/').pop();
+
+    if (!filename) {
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo obtener el nombre del archivo PDF',
+        icon: 'error',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Cargando PDF...',
+      text: 'Por favor espere mientras se carga el documento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.hojaVidaService.obtenerPDF(filename).subscribe({
+      next: (pdfBlob: Blob) => {
+        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+
+        Swal.close();
+
+        const pdfHtml = `
+          <div style="width: 100%; height: 80vh;">
+            <iframe src="${pdfBlobUrl}" style="width: 100%; height: 100%; border: none;" type="application/pdf"></iframe>
+          </div>
+        `;
+
+        Swal.fire({
+          title: 'Exámenes',
+          html: pdfHtml,
+          width: '95%',
+          showCloseButton: true,
+          confirmButtonText: 'Cerrar',
+          willClose: () => {
+            URL.revokeObjectURL(pdfBlobUrl);
+          }
+        });
+      },
+      error: () => {
+        Swal.fire({
+          title: 'Error al cargar PDF',
+          text: 'No se pudo cargar el documento PDF. Verifique que el archivo existe.',
+          icon: 'error',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
+  }
+
+  verPDFBiometria(hoja: any): void {
+    const casoId = hoja._id;
+
+    if (!casoId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener el ID del caso'
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Cargando PDF...',
       text: 'Por favor espere',
@@ -273,7 +420,7 @@ export class ConsultarHojasVidaPs implements OnInit {
       didOpen: () => Swal.showLoading()
     });
 
-    this.service.obtenerPDF(filename).subscribe({
+    this.hojaVidaService.descargarBiometria(casoId).subscribe({
       next: (pdfBlob: Blob) => {
         const pdfBlobUrl = URL.createObjectURL(pdfBlob);
         Swal.close();
@@ -284,7 +431,7 @@ export class ConsultarHojasVidaPs implements OnInit {
           </div>
         `;
         Swal.fire({
-          title: 'Visualizador de PDF',
+          title: 'Biometría',
           html,
           width: '95%',
           showCloseButton: true,
@@ -298,7 +445,117 @@ export class ConsultarHojasVidaPs implements OnInit {
       },
       error: () => {
         Swal.close();
-        Swal.fire({ title: 'Error', text: 'No se pudo cargar el PDF', icon: 'error' });
+        Swal.fire({ title: 'Error', text: 'No se pudo cargar el PDF de biometría', icon: 'error' });
+      }
+    });
+  }
+
+  verPDFConsentimiento(hoja: any): void {
+    let filename = hoja.RUTA_NOTIFICACION_RECIBIDA;
+
+    if (!filename || filename.trim() === '') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró el archivo de consentimiento'
+      });
+      return;
+    }
+
+    // Extraer solo el nombre del archivo si viene con ruta
+    if (filename.includes('/')) {
+      const parts = filename.split('/');
+      filename = parts[parts.length - 1];
+    }
+
+    Swal.fire({
+      title: 'Cargando consentimiento...',
+      text: 'Por favor espere',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this.service.obtenerPDFNotificacionAuth(filename).subscribe({
+      next: (pdfBlob: Blob) => {
+        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+        Swal.close();
+
+        const html = `
+          <div style="width: 100%; height: 80vh;">
+            <iframe src="${pdfBlobUrl}" style="width: 100%; height: 100%; border: none;" type="application/pdf"></iframe>
+          </div>
+        `;
+        Swal.fire({
+          title: 'Consentimiento',
+          html,
+          width: '95%',
+          showCloseButton: true,
+          confirmButtonText: 'Cerrar',
+          willClose: () => {
+            try {
+              URL.revokeObjectURL(pdfBlobUrl);
+            } catch {}
+          }
+        });
+      },
+      error: (error) => {
+        Swal.close();
+        let errorMessage = 'No se pudo cargar el PDF del consentimiento';
+        if (error.status === 404) {
+          errorMessage = 'El archivo de consentimiento no fue encontrado en el servidor.';
+        } else if (error.status === 500) {
+          errorMessage = 'Error en el servidor. Por favor, contacte al administrador.';
+        }
+        Swal.fire({ title: 'Error', text: errorMessage, icon: 'error' });
+      }
+    });
+  }
+
+  verPDFPsicologia(hoja: any): void {
+    const casoId = hoja._id;
+
+    if (!casoId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener el ID del caso'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Cargando PDF...',
+      text: 'Por favor espere',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this.service.descargarPDFPsicologia(casoId).subscribe({
+      next: (pdfBlob: Blob) => {
+        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+        Swal.close();
+
+        const html = `
+          <div style="width: 100%; height: 80vh;">
+            <iframe src="${pdfBlobUrl}" style="width: 100%; height: 100%; border: none;" type="application/pdf"></iframe>
+          </div>
+        `;
+        Swal.fire({
+          title: 'Resultados Entrevista Psicología',
+          html,
+          width: '95%',
+          showCloseButton: true,
+          confirmButtonText: 'Cerrar',
+          willClose: () => {
+            try {
+              URL.revokeObjectURL(pdfBlobUrl);
+            } catch {}
+          }
+        });
+      },
+      error: () => {
+        Swal.close();
+        Swal.fire({ title: 'Error', text: 'No se pudo cargar el PDF de psicología', icon: 'error' });
       }
     });
   }
