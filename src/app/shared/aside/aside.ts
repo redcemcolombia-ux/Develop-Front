@@ -34,6 +34,7 @@ export type AsidePanelId =
   | 'registroIndividual'
   | 'cargaMasiva'
   | 'consultaHojas'
+  | 'actualizarAspirante'
   | 'gestionarAspirante'
   | 'casosCerrados'
   | 'casosAplazados'
@@ -71,6 +72,7 @@ export class Aside implements OnInit {
   canViewRegistroIndividual: boolean = false;
   canViewCargaMasiva: boolean = false;
   canViewConsultaHojas: boolean = false;
+  canViewActualizarAspirante: boolean = false;
   canViewGestionarAspirante: boolean = false;
   canViewCasosCerrados: boolean = false;
   canViewCasosAplazados: boolean = false;
@@ -115,6 +117,7 @@ export class Aside implements OnInit {
           this.canViewRegistroIndividual = true;
           this.canViewCargaMasiva = true;
           this.canViewConsultaHojas = true;
+          this.canViewActualizarAspirante = true;
           this.canViewGestionarAspirante = true;
           this.canViewCasosCerrados = true;
           this.canViewCasosAplazados = true;
@@ -130,6 +133,7 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewActualizarAspirante = true;
         this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
@@ -162,6 +166,7 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewActualizarAspirante = true;
         this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
@@ -170,6 +175,7 @@ export class Aside implements OnInit {
       case 'cliente gestor':
         this.canViewGestorHojaVida = true;
         this.canViewConsultaHojas = true;
+        this.canViewActualizarAspirante = true;
         this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
@@ -180,6 +186,7 @@ export class Aside implements OnInit {
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
+        this.canViewActualizarAspirante = true;
         this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
@@ -215,6 +222,7 @@ export class Aside implements OnInit {
     this.canViewRegistroIndividual = false;
     this.canViewCargaMasiva = false;
     this.canViewConsultaHojas = false;
+    this.canViewActualizarAspirante = false;
     this.canViewGestionarAspirante = false;
     this.canViewCasosCerrados = false;
     this.canViewCasosAplazados = false;
@@ -408,6 +416,12 @@ export class Aside implements OnInit {
   openConsultaHojas(): void {
     if (this.canViewConsultaHojas) {
       this.selectPanel.emit('consultaHojas');
+    }
+  }
+
+  openActualizarAspirante(): void {
+    if (this.canViewActualizarAspirante) {
+      this.selectPanel.emit('actualizarAspirante');
     }
   }
 

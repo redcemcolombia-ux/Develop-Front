@@ -76,3 +76,29 @@ body {
   color: #6c757d !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
+
+/* Estilos para tablas responsive */
+.platform-table__wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.platform-table__wrap .platform-table {
+  min-width: 800px;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+/* Asegurar que el card-body contenga todo */
+.platform-card .card-body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .platform-table__wrap .platform-table {
+    min-width: 600px;
+  }
+}

@@ -32,6 +32,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'gestor-hoja-vida/actualizar-aspirante',
+    loadComponent: () => import('./features/gestorHojaVida/actualizarAspirante/actualizar-aspirante').then((m) => m.ActualizarAspirante),
+    canActivate: [authGuard]
+  },
+  {
     path: 'gestor-hoja-vida/graficas',
     loadComponent: () => import('./features/gestorHojaVida/graficasHojasVida/graficas-hojas-vida').then((m) => m.GraficasHojasVida),
     canActivate: [authGuard]

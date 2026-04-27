@@ -31,6 +31,7 @@ import { InformePs } from '../informePs/informe-ps';
 import { RegistroIndividual } from '../gestorHojaVida/registroIndividual/registro-individual';
 import { CargaMasiva } from '../gestorHojaVida/cargaMasiva/carga-masiva';
 import { ConsultaHojasVida } from '../gestorHojaVida/consultaHojasVida/consulta-hojas-vida';
+import { ActualizarAspirante } from '../gestorHojaVida/actualizarAspirante/actualizar-aspirante';
 import { GestionarAspirante } from '../gestorHojaVida/gestionarAspirante/gestionar-aspirante';
 import { CasosCerrados } from '../gestorHojaVida/casosCerrados/casos-cerrados';
 import { CasosAplazados } from '../gestorHojaVida/casosAplazados/casos-aplazados';
@@ -43,7 +44,7 @@ type PanelId = AsidePanelId;
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso],
+  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, ActualizarAspirante, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -123,6 +124,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   showConsultaHojas(): boolean {
     return (this.activePanel() as unknown as string) === 'consultaHojas';
+  }
+
+  showActualizarAspirante(): boolean {
+    return (this.activePanel() as unknown as string) === 'actualizarAspirante';
   }
 
   showGestionarAspirante(): boolean {

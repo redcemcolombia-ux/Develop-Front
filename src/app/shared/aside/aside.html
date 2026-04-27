@@ -254,7 +254,7 @@
       <a
         class="menu-item d-grid"
         title="Gestor Hoja de Vida"
-        [class.active]="activePanel === 'registroIndividual' || activePanel === 'cargaMasiva' || activePanel === 'consultaHojas' || activePanel === 'gestionarAspirante' || activePanel === 'casosCerrados' || activePanel === 'casosAplazados' || activePanel === 'graficasHojas'"
+        [class.active]="activePanel === 'registroIndividual' || activePanel === 'cargaMasiva' || activePanel === 'consultaHojas' || activePanel === 'actualizarAspirante' || activePanel === 'gestionarAspirante' || activePanel === 'casosCerrados' || activePanel === 'casosAplazados' || activePanel === 'graficasHojas'"
         [class.expanded]="gestorHojaVidaMenuExpanded"
         (click)="toggleGestorHojaVidaMenu()"
       >
@@ -293,6 +293,16 @@
         >
           <span class="icon">🔍</span>
           <span class="text">Consultar aspirante</span>
+        </a>
+        <a
+          *ngIf="canViewActualizarAspirante"
+          class="submenu-item"
+          title="Actualizar aspirante"
+          [class.active]="activePanel === 'actualizarAspirante'"
+          (click)="openActualizarAspirante()"
+        >
+          <span class="icon">✏️</span>
+          <span class="text">Actualizar aspirante</span>
         </a>
         <a
           *ngIf="canViewGestionarAspirante"

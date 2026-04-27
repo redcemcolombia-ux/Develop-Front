@@ -206,6 +206,12 @@
         </div>
       </section>
 
+      <section *ngIf="showActualizarAspirante()" class="row g-4">
+        <div class="col-12">
+          <app-actualizar-aspirante></app-actualizar-aspirante>
+        </div>
+      </section>
+
       <section *ngIf="showGestionarAspirante()" class="row g-4">
         <div class="col-12">
           <app-gestionar-aspirante></app-gestionar-aspirante>

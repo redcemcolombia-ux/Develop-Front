@@ -121,4 +121,8 @@ export class HojaVidaService {
   gestionarCierre(payload: any): Observable<any> {
     return this.http.put<any>(`${this.baseApi}/hojas-vida/cierre/gestionar`, payload, { headers: this.getHeaders() });
   }
+
+  updateHojaVida(id: string, hojaVida: any): Observable<any> {
+    return this.http.put<any>(`${this.baseApi}/hojas-vida/actualizar/${id}`, hojaVida, { headers: this.getHeaders() });
+  }
 }
