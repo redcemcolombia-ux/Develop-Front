@@ -32,6 +32,7 @@ import { RegistroIndividual } from '../gestorHojaVida/registroIndividual/registr
 import { CargaMasiva } from '../gestorHojaVida/cargaMasiva/carga-masiva';
 import { ConsultaHojasVida } from '../gestorHojaVida/consultaHojasVida/consulta-hojas-vida';
 import { ActualizarAspirante } from '../gestorHojaVida/actualizarAspirante/actualizar-aspirante';
+import { EditarAspirante } from '../gestorHojaVida/editarAspirante/editar-aspirante';
 import { GestionarAspirante } from '../gestorHojaVida/gestionarAspirante/gestionar-aspirante';
 import { CasosCerrados } from '../gestorHojaVida/casosCerrados/casos-cerrados';
 import { CasosAplazados } from '../gestorHojaVida/casosAplazados/casos-aplazados';
@@ -44,7 +45,7 @@ type PanelId = AsidePanelId;
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, ActualizarAspirante, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso],
+  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, ActualizarAspirante, EditarAspirante, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -130,6 +131,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     return (this.activePanel() as unknown as string) === 'actualizarAspirante';
   }
 
+  showEditarAspirante(): boolean {
+    return (this.activePanel() as unknown as string) === 'editarAspirante';
+  }
+
   showGestionarAspirante(): boolean {
     return (this.activePanel() as unknown as string) === 'gestionarAspirante';
   }
@@ -169,6 +174,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   usuarioAEditar: Usuario | null = null;
   ipsAEditar: Ips | null = null;
   usuarioControlUso: Usuario | null = null;
+  aspiranteAEditar: any = null;
 
   readonly userName = signal('Usuario');
   readonly userEmail = signal('');
@@ -307,6 +313,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   onVolverAControlProcesos(): void {
     this.usuarioControlUso = null;
     this.activePanel.set('controlProcesos');
+  }
+
+  onEditarAspirante(aspirante: any): void {
+    this.aspiranteAEditar = aspirante;
+    this.activePanel.set('editarAspirante');
+  }
+
+  onVolverAActualizarAspirante(): void {
+    this.aspiranteAEditar = null;
+    this.activePanel.set('actualizarAspirante');
   }
 
   onCloseAside(): void {

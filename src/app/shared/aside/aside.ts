@@ -35,6 +35,7 @@ export type AsidePanelId =
   | 'cargaMasiva'
   | 'consultaHojas'
   | 'actualizarAspirante'
+  | 'editarAspirante'
   | 'gestionarAspirante'
   | 'casosCerrados'
   | 'casosAplazados'

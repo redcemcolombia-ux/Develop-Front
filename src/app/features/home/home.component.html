@@ -208,7 +208,13 @@
 
       <section *ngIf="showActualizarAspirante()" class="row g-4">
         <div class="col-12">
-          <app-actualizar-aspirante></app-actualizar-aspirante>
+          <app-actualizar-aspirante (editarAspirante)="onEditarAspirante($event)"></app-actualizar-aspirante>
+        </div>
+      </section>
+
+      <section *ngIf="showEditarAspirante()" class="row g-4">
+        <div class="col-12">
+          <app-editar-aspirante [aspirante]="aspiranteAEditar" (volverListado)="onVolverAActualizarAspirante()"></app-editar-aspirante>
         </div>
       </section>
 

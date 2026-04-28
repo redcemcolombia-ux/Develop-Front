@@ -46,10 +46,10 @@
               <th>Documento</th>
               <th>Nombre</th>
               <th class="d-none d-md-table-cell">Ciudad</th>
-              <th class="d-none d-lg-table-cell">Correo</th>
+              <th class="d-none">Correo</th>
               <th class="text-center">Estado</th>
               <th class="text-center d-none d-md-table-cell">Fecha Cierre</th>
-              <th class="text-center">Datos</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -63,7 +63,7 @@
               <td class="d-none d-md-table-cell">
                 {{ capitalize(hoja.CIUDAD) }}
               </td>
-              <td class="d-none d-lg-table-cell">
+              <td class="d-none">
                 {{ hoja.CORREO?.toLowerCase() }}
               </td>
               <td class="text-center">

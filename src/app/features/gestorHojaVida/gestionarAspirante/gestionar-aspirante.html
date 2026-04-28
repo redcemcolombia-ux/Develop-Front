@@ -46,10 +46,9 @@
               <th>Documento</th>
               <th>Nombre</th>
               <th class="d-none d-md-table-cell">Ciudad</th>
-              <th class="d-none d-lg-table-cell">Correo</th>
+              <th class="d-none">Correo</th>
               <th class="text-center">Estado</th>
-              <th class="text-center">Datos</th>
-              <th class="text-center">Gestión</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -63,7 +62,7 @@
               <td class="d-none d-md-table-cell">
                 {{ capitalize(hoja.CIUDAD) }}
               </td>
-              <td class="d-none d-lg-table-cell">
+              <td class="d-none">
                 {{ hoja.CORREO?.toLowerCase() }}
               </td>
               <td class="text-center">
@@ -72,12 +71,10 @@
                 </span>
               </td>
               <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-primary" (click)="verDetalleHoja(hoja)">
+                <button type="button" class="btn btn-sm btn-outline-primary my-1" (click)="verDetalleHoja(hoja)">
                   Ver
                 </button>
-              </td>
-              <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger" (click)="abrirModalGestion(hoja)">
+                <button type="button" class="btn btn-sm btn-danger ms-1 my-1" (click)="abrirModalGestion(hoja)">
                   Gestionar
                 </button>
               </td>

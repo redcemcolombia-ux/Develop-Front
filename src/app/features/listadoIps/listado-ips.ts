@@ -91,7 +91,6 @@ export class ListadoIps implements OnInit {
         (ips) =>
           ips.NOMBRE_IPS.toLowerCase().includes(termino) ||
           ips.NIT.toLowerCase().includes(termino) ||
-          ips.CORREO.toLowerCase().includes(termino) ||
           ips.REPRESENTANTE.toLowerCase().includes(termino) ||
           ips.CIUDAD.toLowerCase().includes(termino) ||
           ips.DEPARTAMENTO.toLowerCase().includes(termino) ||
@@ -117,7 +116,17 @@ export class ListadoIps implements OnInit {
   }
 
   get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    const pages = [];
+    const maxVisible = 3;
+    let start = Math.max(1, this.currentPage - 1);
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   changePage(page: number): void {

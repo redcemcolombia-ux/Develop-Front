@@ -14,7 +14,7 @@
           <input
             type="text"
             class="form-control"
-            placeholder="Buscar por nombre, NIT, correo, ciudad..."
+            placeholder="Buscar por nombre, NIT, ciudad..."
             [(ngModel)]="searchTerm"
             (input)="onSearchChange()"
           />
@@ -47,8 +47,7 @@
               <th class="d-none d-md-table-cell">NIT</th>
               <th class="d-none">Ciudad</th>
               <th>Estado</th>
-              <th>Datos</th>
-              <th class="text-center">Editar</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -63,11 +62,13 @@
                   {{ ips.ESTADO }}
                 </span>
               </td>
-              <td>
-                <button type="button" class="btn btn-outline-primary btn-sm" (click)="verDetalle(ips)">Ver</button>
-              </td>
               <td class="text-center">
-                <button type="button" class="btn btn-sm btn-danger" (click)="onEditarIps(ips)">Editar</button>
+                <button type="button" class="btn btn-outline-primary btn-sm my-1" (click)="verDetalle(ips)">
+                  Ver
+                </button>
+                <button type="button" class="btn btn-outline-warning btn-sm ms-1 my-1" (click)="onEditarIps(ips)">
+                  Editar
+                </button>
               </td>
             </tr>
           </tbody>

@@ -163,7 +163,17 @@ export class MisCasos implements OnInit {
   }
 
   get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    const pages = [];
+    const maxVisible = 3;
+    let start = Math.max(1, this.currentPage - 1);
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   changePage(page: number): void {
@@ -559,33 +569,87 @@ export class MisCasos implements OnInit {
   }
 
   private procesarCargaPDF(hojaVidaId: string, pdfFile: File): void {
-    this.service.cargarPDF(hojaVidaId, pdfFile).subscribe({
-      next: (resp) => {
-        if (resp.error === 0) {
+    const usuarioId = this.getLoggedUserId();
+
+    if (!usuarioId) {
+      Swal.fire({
+        title: 'Error de Sesión',
+        text: 'No se pudo obtener el usuario. Por favor, inicie sesión nuevamente.',
+        icon: 'error',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Validando...',
+      text: 'Verificando casos disponibles',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.service.validarDescontarCaso(usuarioId).subscribe({
+      next: (validacionResp) => {
+        if (validacionResp.error === 0) {
+          const casosRestantes = validacionResp.response?.casos_restantes;
+
           Swal.fire({
-            title: '¡PDF Cargado Exitosamente!',
-            html: `
-              <div class="text-start">
-                <p><strong>Mensaje:</strong> ${resp.response?.mensaje || 'PDF almacenado correctamente'}</p>
-              </div>
-            `,
-            icon: 'success',
-            confirmButtonText: 'Entendido'
+            title: 'Subiendo PDF...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
           });
-          this.consultar(false);
+
+          this.service.cargarPDF(hojaVidaId, pdfFile).subscribe({
+            next: (resp) => {
+              if (resp.error === 0) {
+                Swal.fire({
+                  title: '¡PDF Cargado Exitosamente!',
+                  html: `
+                    <div class="text-start">
+                      <p><strong>Mensaje:</strong> ${resp.response?.mensaje || 'PDF almacenado correctamente'}</p>
+                      ${casosRestantes !== undefined ? `<p><strong>Casos restantes:</strong> ${casosRestantes}</p>` : ''}
+                    </div>
+                  `,
+                  icon: 'success',
+                  confirmButtonText: 'Entendido'
+                });
+                this.consultar(false);
+              } else {
+                Swal.fire({
+                  title: 'Error al Cargar PDF',
+                  text: resp.response?.mensaje || resp.mensaje || 'Error desconocido del servidor',
+                  icon: 'error',
+                  confirmButtonText: 'Entendido'
+                });
+              }
+            },
+            error: () => {
+              Swal.fire({
+                title: 'Error de Conexión',
+                text: 'No se pudo cargar el PDF. Verifique su conexión.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+              });
+            }
+          });
         } else {
           Swal.fire({
-            title: 'Error al Cargar PDF',
-            text: resp.response?.mensaje || resp.mensaje || 'Error desconocido del servidor',
-            icon: 'error',
+            title: 'Sin Casos Disponibles',
+            text: validacionResp.response?.mensaje || 'No tiene casos disponibles. Por favor, comuníquese con el administrador.',
+            icon: 'warning',
             confirmButtonText: 'Entendido'
           });
         }
       },
-      error: () => {
+      error: (err) => {
         Swal.fire({
-          title: 'Error de Conexión',
-          text: 'No se pudo cargar el PDF. Verifique su conexión.',
+          title: 'Error de Validación',
+          text: err.error?.response?.mensaje || 'No se pudo validar la disponibilidad de casos.',
           icon: 'error',
           confirmButtonText: 'Entendido'
         });

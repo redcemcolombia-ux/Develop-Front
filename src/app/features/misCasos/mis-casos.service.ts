@@ -185,6 +185,16 @@ export class MisCasosService {
       .pipe(catchError((e) => this.handle<ConsultarCasosRetornoIpsResponse>(e)));
   }
 
+  validarDescontarCaso(usuarioId: string): Observable<ApiResponse<any>> {
+    const headers = this.buildAuthHeaders();
+    const url = `${this.baseUrl}/api/hojas-vida/validar-descontar-caso`;
+    const payload = { usuario_id: usuarioId };
+
+    return this.http
+      .post<ApiResponse<any>>(url, payload, { headers })
+      .pipe(catchError((e) => this.handle<any>(e)));
+  }
+
   private buildAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token') ?? '';
     return new HttpHeaders({
