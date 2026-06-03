@@ -125,4 +125,30 @@ export class HojaVidaService {
   updateHojaVida(id: string, hojaVida: any): Observable<any> {
     return this.http.put<any>(`${this.baseApi}/hojas-vida/actualizar/${id}`, hojaVida, { headers: this.getHeaders() });
   }
+
+  obtenerNotificaciones(): Observable<any> {
+    return this.http.get<any>(`${this.baseApi}/hojas-vida/notificaciones`, { headers: this.getHeaders() });
+  }
+
+  marcarNotificacionesLeidas(
+    hojaVidaId: string,
+    historialExamenesIds: string[] = [],
+    infoLiberacionIds: string[] = [],
+    historialBiometriaIds: string[] = [],
+    marcarLeidoRutaBiometria: boolean = false,
+    marcarLeidoRutaPsicologia: boolean = false,
+    marcarLeidoPdfUrl: boolean = false
+  ): Observable<any> {
+    const body = {
+      hoja_vida_id: hojaVidaId,
+      historial_examenes_ids: historialExamenesIds,
+      info_liberacion_ids: infoLiberacionIds,
+      historial_biometria_ids: historialBiometriaIds,
+      marcar_leido_ruta_biometria: marcarLeidoRutaBiometria,
+      marcar_leido_ruta_psicologia: marcarLeidoRutaPsicologia,
+      marcar_leido_pdf_url: marcarLeidoPdfUrl
+    };
+
+    return this.http.put<any>(`${this.baseApi}/hojas-vida/notificaciones/marcar-leido`, body, { headers: this.getHeaders() });
+  }
 }

@@ -1,0 +1,120 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="row g-3">
+    <!-- Formulario Escalar Caso -->
+    <div class="col-12">
+      <div class="card platform-card">
+        <div class="card-header platform-card__header platform-card__header--danger">
+          <h5 class="mb-0">Escalar Caso a Mesa de Ayuda</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <!-- Descripción del Caso -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                Descripción Detallada del Caso <span class="text-danger">*</span>
+              </label>
+              <textarea
+                class="form-control"
+                formControlName="descripcion"
+                rows="10"
+                placeholder="Describa detalladamente el caso que desea escalar. Incluya toda la información relevante: qué sucedió, cuándo, cómo afecta, etc. (Mínimo 100 caracteres)"
+                [class.is-invalid]="submitted && f['descripcion'].invalid"
+                spellcheck="true"
+                lang="es-419"
+                maxlength="5000"
+              ></textarea>
+              <div class="d-flex justify-content-between mt-1">
+                <div class="invalid-feedback d-block" *ngIf="submitted && f['descripcion'].errors">
+                  <span *ngIf="f['descripcion'].errors['required']">La descripción es obligatoria.</span>
+                  <span *ngIf="f['descripcion'].errors['minlength']">
+                    La descripción debe tener al menos 100 caracteres. (Actual: {{ f['descripcion'].value?.length || 0 }})
+                  </span>
+                </div>
+                <small class="text-muted">
+                  {{ f['descripcion'].value?.length || 0 }} / 100 caracteres mínimos (máx 5000)
+                </small>
+              </div>
+            </div>
+
+            <!-- Nivel de Prioridad -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Nivel de Prioridad <span class="text-danger">*</span>
+              </label>
+              <select
+                class="form-select"
+                formControlName="prioridad"
+                [class.is-invalid]="submitted && f['prioridad'].invalid"
+              >
+                <option value="">Seleccione una prioridad</option>
+                <option value="ALTO">🔴 Alto - Urgente</option>
+                <option value="MEDIO">🟡 Medio - Importante</option>
+                <option value="BAJO">🟢 Bajo - Normal</option>
+              </select>
+              <div class="invalid-feedback" *ngIf="submitted && f['prioridad'].invalid">
+                Debe seleccionar un nivel de prioridad.
+              </div>
+            </div>
+
+            <!-- Evidencia (Imagen) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Evidencia (Imagen) <span class="text-muted">(Opcional)</span>
+              </label>
+              <input
+                type="file"
+                class="form-control"
+                accept="image/jpeg,image/jpg,image/png"
+                (change)="onFileSelected($event)"
+                [class.is-invalid]="errorImagen"
+                #fileInput
+              />
+              <div class="invalid-feedback d-block" *ngIf="errorImagen">
+                {{ errorImagen }}
+              </div>
+              <small class="text-muted d-block mt-1">
+                Formatos permitidos: JPG, PNG. Tamaño máximo: 5 MB
+              </small>
+            </div>
+
+            <!-- Preview de la imagen -->
+            <div class="col-12" *ngIf="imagenPreview">
+              <div class="card">
+                <div class="card-header bg-danger text-white">
+                  <small class="fw-semibold">Vista previa de evidencia:</small>
+                </div>
+                <div class="card-body text-center p-2">
+                  <img [src]="imagenPreview" alt="Preview" class="img-fluid" style="max-height: 300px; border-radius: 8px;">
+                  <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="eliminarImagen()">
+                    <i class="bi bi-trash"></i> Eliminar imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cancelar()"
+                [disabled]="isLoading"
+              >
+                <i class="bi bi-x-circle"></i> Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-danger"
+                [disabled]="isLoading"
+              >
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i class="bi bi-arrow-up-circle" *ngIf="!isLoading"></i>
+                {{ isLoading ? 'Escalando...' : 'Escalar Caso' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

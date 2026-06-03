@@ -1,0 +1,8 @@
+.notification-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+}

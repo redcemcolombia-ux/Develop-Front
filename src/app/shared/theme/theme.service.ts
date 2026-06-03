@@ -5,7 +5,7 @@ type ThemeMode = 'light' | 'dark';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly cookieName = 'theme_mode';
-  readonly isDarkMode = signal(false);
+  readonly isDarkMode = signal(true);
 
   constructor() {
     this.applyInitialThemeFromCookie();

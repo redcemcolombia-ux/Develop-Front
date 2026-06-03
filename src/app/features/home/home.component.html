@@ -188,6 +188,18 @@
         </div>
       </section>
 
+      <section *ngIf="showInformeGeneralPs() && canViewInformeGeneral" class="row g-4">
+        <div class="col-12">
+          <app-informe-general-ps></app-informe-general-ps>
+        </div>
+      </section>
+
+      <section *ngIf="showReasignacionCasosPs() && canViewInformeGeneral" class="row g-4">
+        <div class="col-12">
+          <app-reasignacion-casos-ps></app-reasignacion-casos-ps>
+        </div>
+      </section>
+
       <section *ngIf="showRegistroIndividual()" class="row g-4">
         <div class="col-12">
           <app-registro-individual></app-registro-individual>
@@ -245,6 +257,30 @@
       <section *ngIf="activePanel() === 'aplicaciones'" class="row g-4">
         <div class="col-12">
           <app-aplicaciones></app-aplicaciones>
+        </div>
+      </section>
+
+      <section *ngIf="showEscalarCaso()" class="row g-4">
+        <div class="col-12">
+          <app-escalar-caso></app-escalar-caso>
+        </div>
+      </section>
+
+      <section *ngIf="showSeguimientosCasos()" class="row g-4">
+        <div class="col-12">
+          <app-seguimientos-casos></app-seguimientos-casos>
+        </div>
+      </section>
+
+      <section *ngIf="showGestorEscalamientos()" class="row g-4">
+        <div class="col-12">
+          <app-gestor-escalamientos (seleccionarCaso)="onSeleccionarCasoEscalado($event)"></app-gestor-escalamientos>
+        </div>
+      </section>
+
+      <section *ngIf="showGestionarEscalamiento()" class="row g-4">
+        <div class="col-12">
+          <app-gestionar-escalamiento [caso]="casoEscaladoSeleccionado" (volverGestor)="onVolverAGestorEscalamientos()"></app-gestionar-escalamiento>
         </div>
       </section>
 

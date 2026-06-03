@@ -91,6 +91,53 @@ export interface ConsultarCasosRetornoIpsResponse {
   ips?: any;
 }
 
+export interface LiberacionCasoRequest {
+  caso_id: string;
+  informe_liberacion: string;
+  usuario_id: string;
+}
+
+export interface LiberacionCasoResponse {
+  error: number;
+  response?: {
+    mensaje: string;
+    data?: {
+      caso_id: string;
+      fecha_liberacion: string;
+    };
+  };
+}
+
+export interface ActualizacionExamenesResponse {
+  error: number;
+  response?: {
+    mensaje: string;
+    id_caso?: string;
+    examenes_actuales?: {
+      ruta: string;
+      id_usuario: string;
+      fecha: string;
+    };
+    total_historial?: number;
+    codigo?: string;
+  };
+}
+
+export interface ActualizacionBiometriaResponse {
+  error: number;
+  response?: {
+    mensaje: string;
+    id_caso?: string;
+    biometria_actual?: {
+      ruta: string;
+      id_usuario: string;
+      fecha: string;
+    };
+    total_historial?: number;
+    codigo?: string;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class MisCasosService {
   private readonly http = inject(HttpClient);
@@ -193,6 +240,56 @@ export class MisCasosService {
     return this.http
       .post<ApiResponse<any>>(url, payload, { headers })
       .pipe(catchError((e) => this.handle<any>(e)));
+  }
+
+  /**
+   * Libera un caso asignado a una IPS
+   * @param request Datos de liberación (caso_id, informe, usuario_id)
+   * @returns Observable con respuesta del backend
+   */
+  liberarCaso(request: LiberacionCasoRequest): Observable<LiberacionCasoResponse> {
+    const headers = this.buildAuthHeaders();
+    const url = `${this.baseUrl}/api/ips-gestion/liberar-caso`;
+
+    return this.http
+      .post<LiberacionCasoResponse>(url, request, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => error)));
+  }
+
+  /**
+   * Actualiza el documento de exámenes de un caso
+   * @param formData FormData con: id_caso, id_usuario, notas_cambio, pdf
+   * @returns Observable con respuesta del backend
+   */
+  actualizarExamenes(formData: FormData): Observable<ActualizacionExamenesResponse> {
+    const url = `${this.baseUrl}/api/hojas-vida/actualizacion_examenes`;
+    const token = localStorage.getItem('token') || '';
+
+    return this.http.put<ActualizacionExamenesResponse>(url, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).pipe(
+      catchError((error: HttpErrorResponse) => throwError(() => error))
+    );
+  }
+
+  /**
+   * Actualiza los datos biométricos de un caso
+   * @param formData FormData con: id_caso, id_usuario, notas_cambio, pdf
+   * @returns Observable con respuesta del backend
+   */
+  actualizarBiometria(formData: FormData): Observable<ActualizacionBiometriaResponse> {
+    const url = `${this.baseUrl}/api/hojas-vida/actualizacion_biometria`;
+    const token = localStorage.getItem('token') || '';
+
+    return this.http.put<ActualizacionBiometriaResponse>(url, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).pipe(
+      catchError((error: HttpErrorResponse) => throwError(() => error))
+    );
   }
 
   private buildAuthHeaders(): HttpHeaders {

@@ -34,7 +34,6 @@ export class AuthService {
       const currentTime = Math.floor(Date.now() / 1000);
       return payload.exp > currentTime;
     } catch (error) {
-      console.error('Error al verificar token:', error);
       return false;
     }
   }
@@ -54,7 +53,6 @@ export class AuthService {
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
-      console.error('Error al decodificar token:', error);
       return null;
     }
   }
@@ -114,7 +112,6 @@ export class AuthService {
       const userStr = localStorage.getItem('user');
       return userStr ? JSON.parse(userStr) : null;
     } catch (error) {
-      console.error('Error al obtener información del usuario:', error);
       return null;
     }
   }
@@ -128,5 +125,63 @@ export class AuthService {
    */
   getToken(): string | null {
     return localStorage.getItem('token');
+  }
+
+  /**
+   * Obtiene el ID del usuario logueado desde localStorage 'user'
+   * @returns ID del usuario o null si no está disponible
+   */
+  getUserId(): string | null {
+    try {
+      const userRaw = localStorage.getItem('user');
+      if (!userRaw) return null;
+
+      const parsed = JSON.parse(userRaw);
+      if (!parsed) return null;
+
+      // Intenta obtener el ID de diferentes posibles estructuras
+      return parsed?.response?.id ?? parsed?.id ?? null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Verifica si el usuario tiene rol de Supervisor de Psicología o Administrador
+   */
+  isSupPsicologia(): boolean {
+    try {
+      const userInfo = this.getUserInfo();
+
+      if (!userInfo || !userInfo.perfil) {
+        return false;
+      }
+
+      const perfil = userInfo.perfil.toLowerCase();
+
+      return perfil === 'sup-psicologia' ||
+             perfil === 'administrador';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Verifica si el usuario tiene rol de Cliente Admin
+   */
+  isClienteAdmin(): boolean {
+    try {
+      const userInfo = this.getUserInfo();
+
+      if (!userInfo || !userInfo.perfil) {
+        return false;
+      }
+
+      const perfil = userInfo.perfil.toLowerCase();
+
+      return perfil === 'cliente admin';
+    } catch (error) {
+      return false;
+    }
   }
 }

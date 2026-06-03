@@ -30,6 +30,8 @@ export class ConsultarHojasVidaPs implements OnInit {
   user: any = null;
   isSupervisorPsico = false;
   isPsicologo = false;
+  isSupPsicologia = false;
+  psicologos: any[] = [];
 
   ngOnInit(): void {
     this.user = this.authService.getUser();
@@ -47,8 +49,16 @@ export class ConsultarHojasVidaPs implements OnInit {
       perfil === 'psicologo-supervisor' ||
       perfil === 'administrador';
 
+    // Verificar si es Sup-Psicologia
+    this.isSupPsicologia = this.authService.isSupPsicologia();
+
     if (this.isSupervisorPsico || this.isPsicologo) {
       this.cargarDatos();
+    }
+
+    // Cargar lista de psicólogos si es supervisor
+    if (this.isSupPsicologia) {
+      this.cargarPsicologos();
     }
   }
 
@@ -718,5 +728,282 @@ export class ConsultarHojasVidaPs implements OnInit {
     ];
     const found = candidates.find((v) => v !== undefined && v !== null && String(v).trim() !== '');
     return found ? String(found) : null;
+  }
+
+  /**
+   * Carga lista de psicólogos del sistema
+   */
+  cargarPsicologos(): void {
+    this.service.listarUsuarios().subscribe({
+      next: (resp) => {
+        if (resp.error === 0 && resp.response?.usuarios) {
+          // Filtrar solo psicólogos
+          this.psicologos = resp.response.usuarios.filter(
+            (usuario) => usuario.Cr_Perfil === 'Psicólogo' || usuario.Cr_Perfil === 'Psicologo' || usuario.Cr_Perfil === 'psicologo' || usuario.Cr_Perfil === 'psicólogo'
+          );
+        }
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Advertencia',
+          text: 'No se pudo cargar la lista de psicólogos. Es posible que no pueda asignar casos.',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
+  }
+
+  /**
+   * Asigna un caso a un psicólogo
+   */
+  asignarCaso(caso: any): void {
+    const casoId = this.getCasoId(caso);
+
+    if (!casoId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se puede asignar el caso. ID no válido.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    if (this.psicologos.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sin Psicólogos',
+        text: 'No hay psicólogos disponibles para asignar',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    // Crear HTML para lista con buscador
+    const psicologosHTML = this.psicologos.map((psicologo) => {
+      const documento = psicologo.Cr_Pe_Codigo?.Pe_Documento || 'Sin documento';
+      return `
+        <div class="psicologo-item" data-id="${psicologo._id}" data-nombre="${psicologo.Cr_Nombre_Usuario.toLowerCase()}" data-documento="${documento}">
+          <div class="form-check">
+            <input class="form-check-input psicologo-radio" type="radio" name="psicologoRadio" id="psi_${psicologo._id}" value="${psicologo._id}">
+            <label class="form-check-label w-100" for="psi_${psicologo._id}">
+              <strong>${psicologo.Cr_Nombre_Usuario}</strong><br>
+              <small class="text-muted">Documento: ${documento}</small>
+            </label>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Mostrar modal con buscador
+    Swal.fire({
+      title: 'Asignar Caso a Psicólogo',
+      html: `
+        <div class="text-start">
+          <p class="mb-2">
+            <strong>Aspirante:</strong> ${caso.NOMBRE || ''} ${caso.PRIMER_APELLIDO || ''} ${caso.SEGUNDO_APELLIDO || ''}
+          </p>
+          <p class="mb-2">
+            <strong>Documento:</strong> ${caso.DOCUMENTO || 'N/A'}
+          </p>
+          <hr>
+          <label class="form-label">
+            <strong>Seleccione Psicólogo:</strong> <span class="text-danger">*</span>
+          </label>
+
+          <div class="input-group mb-3">
+            <span class="input-group-text">🔍</span>
+            <input
+              type="text"
+              class="form-control"
+              id="search-psicologo"
+              placeholder="Buscar por nombre o documento..."
+              autocomplete="off"
+            >
+          </div>
+
+          <div id="psicologos-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;">
+            ${psicologosHTML}
+          </div>
+        </div>
+
+        <style>
+          .psicologo-item {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+          .psicologo-item:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+          }
+          .psicologo-item label {
+            cursor: pointer;
+            margin-bottom: 0;
+          }
+          #psicologos-list::-webkit-scrollbar {
+            width: 8px;
+          }
+          #psicologos-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+          }
+          #psicologos-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+          }
+          #psicologos-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+
+          /* Dark mode support */
+          .swal2-popup.swal2-modal {
+            background-color: var(--bs-body-bg, #fff);
+            color: var(--bs-body-color, #212529);
+          }
+          .psicologo-item {
+            background-color: var(--bs-body-bg, #fff);
+          }
+          #psicologos-list {
+            background-color: var(--bs-body-bg, #fff);
+            border-color: var(--bs-border-color, #dee2e6);
+          }
+        </style>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Asignar Caso',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+      width: '600px',
+      didOpen: () => {
+        const searchInput = document.getElementById('search-psicologo') as HTMLInputElement;
+        const psicologoItems = document.querySelectorAll('.psicologo-item');
+
+        // Funcionalidad de búsqueda
+        searchInput?.addEventListener('input', (e) => {
+          const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+
+          psicologoItems.forEach((item) => {
+            const nombre = item.getAttribute('data-nombre') || '';
+            const documento = item.getAttribute('data-documento') || '';
+
+            if (nombre.includes(searchTerm) || documento.includes(searchTerm)) {
+              (item as HTMLElement).style.display = 'block';
+            } else {
+              (item as HTMLElement).style.display = 'none';
+            }
+          });
+        });
+
+        // Click en item selecciona el radio
+        psicologoItems.forEach((item) => {
+          item.addEventListener('click', () => {
+            const radio = item.querySelector('input[type="radio"]') as HTMLInputElement;
+            if (radio) {
+              radio.checked = true;
+            }
+          });
+        });
+      },
+      preConfirm: () => {
+        const selected = document.querySelector('input[name="psicologoRadio"]:checked') as HTMLInputElement;
+        if (!selected) {
+          Swal.showValidationMessage('Debe seleccionar un psicólogo');
+          return false;
+        }
+        return selected.value;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.confirmarAsignacion(casoId, result.value);
+      }
+    });
+  }
+
+  /**
+   * Confirma la asignación del caso
+   */
+  private confirmarAsignacion(casoId: string, psicologoId: string): void {
+    const supervisorId = this.authService.getUserId();
+
+    if (!supervisorId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Autenticación',
+        text: 'No se pudo obtener el ID del usuario. Por favor, inicie sesión nuevamente.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    // Mostrar loading
+    Swal.fire({
+      title: 'Asignando caso...',
+      html: 'Por favor espere',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Preparar request
+    const request = {
+      caso_id: casoId,
+      psicologo_id: psicologoId,
+      supervisor_id: supervisorId
+    };
+
+    // Llamar al servicio
+    this.service.asignarCaso(request).subscribe({
+      next: (resp) => {
+        if (resp.error === 0) {
+          // Buscar nombre del psicólogo asignado
+          const psicologo = this.psicologos.find((p) => p._id === psicologoId);
+          const nombrePsicologo = psicologo?.Cr_Nombre_Usuario || 'el psicólogo';
+
+          Swal.fire({
+            icon: 'success',
+            title: '¡Caso Asignado!',
+            text: `El caso ha sido asignado exitosamente a ${nombrePsicologo}`,
+            timer: 2500,
+            showConfirmButton: true,
+            confirmButtonText: 'OK'
+          });
+
+          // Actualizar listado
+          this.cargarDatos();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al Asignar',
+            text: resp.response?.mensaje || 'No se pudo asignar el caso',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      },
+      error: (error) => {
+        let errorMessage = 'No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.';
+
+        if (error.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicie sesión nuevamente.';
+        } else if (error.status === 403) {
+          errorMessage = 'No tiene permisos para asignar casos.';
+        } else if (error.status === 404) {
+          errorMessage = 'El caso o el psicólogo no fue encontrado.';
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de Conexión',
+          text: errorMessage,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
   }
 }

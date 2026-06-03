@@ -28,6 +28,8 @@ export type AsidePanelId =
   | 'formNotificacionPs'
   | 'creacionPreguntasPs'
   | 'informePs'
+  | 'informeGeneralPs'
+  | 'reasignacionCasosPs'
   | 'hojaVida'
   | 'aplicaciones'
   | 'gestorHojaVida'
@@ -39,7 +41,11 @@ export type AsidePanelId =
   | 'gestionarAspirante'
   | 'casosCerrados'
   | 'casosAplazados'
-  | 'graficasHojas';
+  | 'graficasHojas'
+  | 'escalarCaso'
+  | 'seguimientosCasos'
+  | 'gestorEscalamientos'
+  | 'gestionarEscalamiento';
 
 @Component({
   selector: 'app-aside',
@@ -58,6 +64,7 @@ export class Aside implements OnInit {
   ipsGestionMenuExpanded = false;
   psicologiaGestionMenuExpanded = false;
   gestorHojaVidaMenuExpanded = false;
+  mesaAyudaMenuExpanded = false;
 
   // Variables para controlar la visibilidad de las opciones del menú
   canViewGestorUsuarios: boolean = false;
@@ -68,6 +75,9 @@ export class Aside implements OnInit {
   canViewFormularioNotificacion: boolean = false;
   canViewGestorHojaVida: boolean = false;
   canViewAplicaciones: boolean = false;
+  canViewInformeGeneral: boolean = false;
+  canViewMesaAyuda: boolean = false;
+  canViewGestorEscalamientos: boolean = false;
 
   // Permisos granulares para Gestor Hoja de Vida
   canViewRegistroIndividual: boolean = false;
@@ -115,6 +125,9 @@ export class Aside implements OnInit {
           this.canViewFormularioNotificacion = true;
           this.canViewGestorHojaVida = true;
           this.canViewAplicaciones = true;
+          this.canViewInformeGeneral = true;
+          this.canViewMesaAyuda = true;
+          this.canViewGestorEscalamientos = true;
           this.canViewRegistroIndividual = true;
           this.canViewCargaMasiva = true;
           this.canViewConsultaHojas = true;
@@ -131,6 +144,7 @@ export class Aside implements OnInit {
         this.canViewIpsGestion = true;
         this.canViewCasosAplazadosIps = true;
         this.canViewGestorHojaVida = true;
+        this.canViewMesaAyuda = true;
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
@@ -141,29 +155,29 @@ export class Aside implements OnInit {
         this.canViewGraficas = true;
         break;
 
-      case 'supervisor_psicologia':
-      case 'supervisor psicologia':
-      case 'psicólogo-supervisor':
-      case 'psicologo-supervisor':
-      case 'psicologo supervisor':
-      case 'psicólogo supervisor':
+      case 'sup-psicologia':
         this.canViewPsicologiaGestion = true;
         this.canViewFormularioNotificacion = true;
+        this.canViewInformeGeneral = true;
+        this.canViewMesaAyuda = true;
         break;
 
       case 'psicologo':
       case 'psicólogo':
         this.canViewPsicologiaGestion = true;
         this.canViewFormularioNotificacion = false;
+        this.canViewMesaAyuda = true;
         break;
 
       case 'usuario':
         this.canViewIpsGestion = true;
         this.canViewCasosAplazadosIps = true;
+        this.canViewMesaAyuda = true;
         break;
 
       case 'cliente':
         this.canViewGestorHojaVida = true;
+        this.canViewMesaAyuda = true;
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
@@ -175,6 +189,7 @@ export class Aside implements OnInit {
 
       case 'cliente gestor':
         this.canViewGestorHojaVida = true;
+        this.canViewMesaAyuda = true;
         this.canViewConsultaHojas = true;
         this.canViewActualizarAspirante = true;
         this.canViewGestionarAspirante = true;
@@ -184,6 +199,7 @@ export class Aside implements OnInit {
 
       case 'cliente admin':
         this.canViewGestorHojaVida = true;
+        this.canViewMesaAyuda = true;
         this.canViewRegistroIndividual = true;
         this.canViewCargaMasiva = true;
         this.canViewConsultaHojas = true;
@@ -196,6 +212,7 @@ export class Aside implements OnInit {
 
       case 'cliente informes':
         this.canViewGestorHojaVida = true;
+        this.canViewMesaAyuda = true;
         this.canViewGestionarAspirante = true;
         this.canViewCasosCerrados = true;
         this.canViewCasosAplazados = true;
@@ -220,6 +237,9 @@ export class Aside implements OnInit {
     this.canViewFormularioNotificacion = false;
     this.canViewGestorHojaVida = false;
     this.canViewAplicaciones = false;
+    this.canViewInformeGeneral = false;
+    this.canViewMesaAyuda = false;
+    this.canViewGestorEscalamientos = false;
     this.canViewRegistroIndividual = false;
     this.canViewCargaMasiva = false;
     this.canViewConsultaHojas = false;
@@ -378,6 +398,18 @@ export class Aside implements OnInit {
     }
   }
 
+  openInformeGeneralPs(): void {
+    if (this.canViewInformeGeneral) {
+      this.selectPanel.emit('informeGeneralPs' as AsidePanelId);
+    }
+  }
+
+  openReasignacionCasosPs(): void {
+    if (this.canViewInformeGeneral) {
+      this.selectPanel.emit('reasignacionCasosPs' as AsidePanelId);
+    }
+  }
+
   openPsicologiaGestion(): void {
     if (this.canViewPsicologiaGestion) {
       this.selectPanel.emit('psicologiaGestion');
@@ -447,6 +479,30 @@ export class Aside implements OnInit {
   openGraficasHojas(): void {
     if (this.canViewGraficas) {
       this.selectPanel.emit('graficasHojas');
+    }
+  }
+
+  toggleMesaAyudaMenu(): void {
+    if (this.canViewMesaAyuda) {
+      this.mesaAyudaMenuExpanded = !this.mesaAyudaMenuExpanded;
+    }
+  }
+
+  openEscalarCaso(): void {
+    if (this.canViewMesaAyuda) {
+      this.selectPanel.emit('escalarCaso');
+    }
+  }
+
+  openSeguimientosCasos(): void {
+    if (this.canViewMesaAyuda) {
+      this.selectPanel.emit('seguimientosCasos');
+    }
+  }
+
+  openGestorEscalamientos(): void {
+    if (this.canViewGestorEscalamientos) {
+      this.selectPanel.emit('gestorEscalamientos');
     }
   }
 }

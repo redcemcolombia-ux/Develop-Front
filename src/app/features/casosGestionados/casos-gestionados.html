@@ -142,3 +142,157 @@
     </div>
   </div>
 </div>
+
+<!-- Modal Actualizar Exámenes -->
+<div class="modal fade" id="modalActualizarExamenes" tabindex="-1"
+     aria-labelledby="modalActualizarExamenesLabel" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalActualizarExamenesLabel">
+          Actualizar Documento de Exámenes
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalEditar()"
+                [disabled]="actualizando"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <span>Se realizará la <strong>actualización del documento</strong> de exámenes correspondiente a este caso.</span>
+        </div>
+
+        <!-- Campo PDF -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            Nuevo documento PDF <span class="text-danger">*</span>
+          </label>
+          <input
+            type="file"
+            class="form-control"
+            [class.is-invalid]="errorPdf"
+            accept=".pdf,application/pdf"
+            (change)="onSeleccionarPdf($event)"
+            #inputPdf
+          />
+          <div class="invalid-feedback" *ngIf="errorPdf">{{ errorPdf }}</div>
+          <small class="text-muted">Solo archivos PDF. Tamaño máximo: 40 MB</small>
+        </div>
+
+        <!-- Campo Motivo -->
+        <div class="mb-1">
+          <label class="form-label fw-semibold">
+            Motivo del cambio <span class="text-danger">*</span>
+          </label>
+          <textarea
+            class="form-control"
+            [class.is-invalid]="errorMotivo"
+            rows="5"
+            placeholder="Explique detalladamente el motivo por el cual se realiza este cambio de documento (mínimo 100 caracteres)..."
+            [(ngModel)]="motivoCambio"
+            (input)="onMotivoChange()"
+            maxlength="2000"
+          ></textarea>
+          <div class="invalid-feedback" *ngIf="errorMotivo">{{ errorMotivo }}</div>
+        </div>
+        <small class="text-muted d-block text-end mb-2">
+          {{ motivoCambio.length }} / 100 caracteres mínimos
+        </small>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary"
+                (click)="cerrarModalEditar()"
+                [disabled]="actualizando">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger text-white"
+                (click)="actualizarExamenes()"
+                [disabled]="actualizando">
+          <span *ngIf="actualizando" class="spinner-border spinner-border-sm me-2"></span>
+          {{ actualizando ? 'Actualizando...' : 'Actualizar Documento' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Actualizar Biometría -->
+<div class="modal fade" id="modalActualizarBiometria" tabindex="-1"
+     aria-labelledby="modalActualizarBiometriaLabel" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalActualizarBiometriaLabel">
+          Actualizar Datos Biométricos
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalEditarBiometria()"
+                [disabled]="actualizandoBiometria"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <span>Se realizará la <strong>actualización de los datos biométricos</strong> correspondientes a este caso.</span>
+        </div>
+
+        <!-- Campo PDF -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            Nuevo documento PDF de Biometría <span class="text-danger">*</span>
+          </label>
+          <input
+            type="file"
+            class="form-control"
+            [class.is-invalid]="errorPdfBiometria"
+            accept=".pdf,application/pdf"
+            (change)="onSeleccionarPdfBiometria($event)"
+            #inputPdfBio
+          />
+          <div class="invalid-feedback" *ngIf="errorPdfBiometria">{{ errorPdfBiometria }}</div>
+          <small class="text-muted">Solo archivos PDF. Tamaño máximo: 150 MB</small>
+        </div>
+
+        <!-- Campo Motivo -->
+        <div class="mb-1">
+          <label class="form-label fw-semibold">
+            Motivo del cambio <span class="text-danger">*</span>
+          </label>
+          <textarea
+            class="form-control"
+            [class.is-invalid]="errorMotivoBiometria"
+            rows="5"
+            placeholder="Explique detalladamente el motivo por el cual se realiza este cambio de datos biométricos (mínimo 100 caracteres)..."
+            [(ngModel)]="motivoCambioBiometria"
+            (input)="onMotivoChangeBiometria()"
+            maxlength="2000"
+          ></textarea>
+          <div class="invalid-feedback" *ngIf="errorMotivoBiometria">{{ errorMotivoBiometria }}</div>
+        </div>
+        <small class="text-muted d-block text-end mb-2">
+          {{ motivoCambioBiometria.length }} / 100 caracteres mínimos
+        </small>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary"
+                (click)="cerrarModalEditarBiometria()"
+                [disabled]="actualizandoBiometria">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger text-white"
+                (click)="actualizarBiometria()"
+                [disabled]="actualizandoBiometria">
+          <span *ngIf="actualizandoBiometria" class="spinner-border spinner-border-sm me-2"></span>
+          {{ actualizandoBiometria ? 'Actualizando...' : 'Actualizar Biometría' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

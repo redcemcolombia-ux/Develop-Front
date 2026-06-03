@@ -1,7 +1,7 @@
 # Gestor IPS
 
 ## Stack
-Angular 17 standalone | Bootstrap 5 | FastAPI | MongoDB Atlas
+Angular 21.2.7 standalone | Angular CLI 21.2.6 | Node.js 22.20.0 | Bootstrap 5 | FastAPI | MongoDB Atlas
 API base: `https://redcemed.com/api/*`
 
 ## Estructura

@@ -41,5 +41,35 @@ export const routes: Routes = [
     loadComponent: () => import('./features/gestorHojaVida/graficasHojasVida/graficas-hojas-vida').then((m) => m.GraficasHojasVida),
     canActivate: [authGuard]
   },
+  {
+    path: 'informe-general-ps',
+    loadComponent: () => import('./features/informeGeneralPs/informe-general-ps').then((m) => m.InformeGeneralPs),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'reasignacion-casos-ps',
+    loadComponent: () => import('./features/reasignacionCasosPs/reasignacion-casos-ps').then((m) => m.ReasignacionCasosPs),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'mesa-ayuda/escalar',
+    loadComponent: () => import('./features/escalarCaso/escalar-caso').then((m) => m.EscalarCaso),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'mesa-ayuda/seguimientos',
+    loadComponent: () => import('./features/seguimientosCasos/seguimientos-casos').then((m) => m.SeguimientosCasos),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'mesa-ayuda/gestor-escalamientos',
+    loadComponent: () => import('./features/gestorEscalamientos/gestor-escalamientos').then((m) => m.GestorEscalamientos),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'mesa-ayuda/gestionar-escalamiento',
+    loadComponent: () => import('./features/gestionarEscalamiento/gestionar-escalamiento').then((m) => m.GestionarEscalamiento),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: 'login' }
 ];

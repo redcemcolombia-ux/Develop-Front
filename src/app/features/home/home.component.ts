@@ -28,6 +28,8 @@ import { FormularioPs } from '../formularioPs/formulario-ps';
 import { FormNotificacionPs } from '../formNotificacionPs/form-notificacion-ps';
 import { CreacionPreguntasPs } from '../creacionPreguntasPs/creacion-preguntas-ps';
 import { InformePs } from '../informePs/informe-ps';
+import { InformeGeneralPs } from '../informeGeneralPs/informe-general-ps';
+import { ReasignacionCasosPs } from '../reasignacionCasosPs/reasignacion-casos-ps';
 import { RegistroIndividual } from '../gestorHojaVida/registroIndividual/registro-individual';
 import { CargaMasiva } from '../gestorHojaVida/cargaMasiva/carga-masiva';
 import { ConsultaHojasVida } from '../gestorHojaVida/consultaHojasVida/consulta-hojas-vida';
@@ -39,13 +41,18 @@ import { CasosAplazados } from '../gestorHojaVida/casosAplazados/casos-aplazados
 import { GraficasHojasVida } from '../gestorHojaVida/graficasHojasVida/graficas-hojas-vida';
 import { Aplicaciones } from '../aplicaciones/aplicaciones';
 import { GestionarControlUso } from '../gestionarControlUso/gestionar-control-uso';
+import { EscalarCaso } from '../escalarCaso/escalar-caso';
+import { SeguimientosCasos } from '../seguimientosCasos/seguimientos-casos';
+import { GestorEscalamientos } from '../gestorEscalamientos/gestor-escalamientos';
+import { GestionarEscalamiento } from '../gestionarEscalamiento/gestionar-escalamiento';
+import { CasoEscalado } from '../mesaAyuda/mesa-ayuda.service';
 
 type PanelId = AsidePanelId;
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, ActualizarAspirante, EditarAspirante, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso],
+  imports: [CommonModule, Aside, Topbar, RegistroUsuarios, ListadoUsuarios, EditarUsuario, RegistroIps, ListadoIps, EditarIps, GestorIpsCitas, MisCasos, CasosGestionados, CasosAplazadosIps, Informe, ConsultarHojasVidaPs, MisCasosTomadosPs, MisCasosGestionadosPs, MisCasosFinalizadosPs, FormularioPs, FormNotificacionPs, CreacionPreguntasPs, InformePs, InformeGeneralPs, ReasignacionCasosPs, RegistroIndividual, CargaMasiva, ConsultaHojasVida, ActualizarAspirante, EditarAspirante, GestionarAspirante, CasosCerrados, CasosAplazados, GraficasHojasVida, Aplicaciones, GestionarControlUso, EscalarCaso, SeguimientosCasos, GestorEscalamientos, GestionarEscalamiento],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -62,6 +69,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   private inactivityTimeout: any;
   private lastActivityTime: number = Date.now();
   private readonly INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutos en milisegundos
+
+  canViewInformeGeneral: boolean = false;
 
   showConsultarHojasDeVida(): boolean {
     return (this.activePanel() as unknown as string) === 'consultarHojasVida';
@@ -113,6 +122,14 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   showInformePs(): boolean {
     return (this.activePanel() as unknown as string) === 'informePs';
+  }
+
+  showInformeGeneralPs(): boolean {
+    return (this.activePanel() as unknown as string) === 'informeGeneralPs';
+  }
+
+  showReasignacionCasosPs(): boolean {
+    return (this.activePanel() as unknown as string) === 'reasignacionCasosPs';
   }
 
   showRegistroIndividual(): boolean {
@@ -171,10 +188,27 @@ export class HomeComponent implements OnInit, OnDestroy {
     return (this.activePanel() as unknown as string) === 'gestionarControlUso';
   }
 
+  showEscalarCaso(): boolean {
+    return (this.activePanel() as unknown as string) === 'escalarCaso';
+  }
+
+  showSeguimientosCasos(): boolean {
+    return (this.activePanel() as unknown as string) === 'seguimientosCasos';
+  }
+
+  showGestorEscalamientos(): boolean {
+    return (this.activePanel() as unknown as string) === 'gestorEscalamientos';
+  }
+
+  showGestionarEscalamiento(): boolean {
+    return (this.activePanel() as unknown as string) === 'gestionarEscalamiento';
+  }
+
   usuarioAEditar: Usuario | null = null;
   ipsAEditar: Ips | null = null;
   usuarioControlUso: Usuario | null = null;
   aspiranteAEditar: any = null;
+  casoEscaladoSeleccionado: CasoEscalado | null = null;
 
   readonly userName = signal('Usuario');
   readonly userEmail = signal('');
@@ -194,6 +228,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.empresa.set(user.empresa || '');
       this.permisos.set(user.permiso || '');
     }
+
+    // Verificar si puede ver Informe General
+    this.canViewInformeGeneral = this.authService.isSupPsicologia();
 
     // Inicializar control de sesión
     this.initSessionControl();
@@ -308,6 +345,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   onGestionarControlUso(usuario: Usuario): void {
     this.usuarioControlUso = usuario;
     this.activePanel.set('gestionarControlUso');
+  }
+
+  onSeleccionarCasoEscalado(caso: CasoEscalado): void {
+    this.casoEscaladoSeleccionado = caso;
+    this.activePanel.set('gestionarEscalamiento');
+  }
+
+  onVolverAGestorEscalamientos(): void {
+    this.casoEscaladoSeleccionado = null;
+    this.activePanel.set('gestorEscalamientos');
   }
 
   onVolverAControlProcesos(): void {

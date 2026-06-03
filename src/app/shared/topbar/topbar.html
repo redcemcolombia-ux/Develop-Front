@@ -10,6 +10,85 @@
       </div>
     </div>
 
+    <!-- Notificaciones (solo para Cliente Admin) -->
+    <div class="notifications position-relative" *ngIf="isClienteAdmin">
+      <button
+        type="button"
+        class="platform-icon-btn position-relative"
+        (click)="toggleNotificaciones()"
+        [attr.aria-label]="'Notificaciones'"
+        [title]="'Notificaciones'"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+          />
+        </svg>
+        <span
+          *ngIf="totalNotificaciones > 0"
+          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+          style="font-size: 0.65rem;"
+        >
+          {{ totalNotificaciones }}
+        </span>
+      </button>
+
+      <!-- Dropdown de notificaciones -->
+      <div
+        *ngIf="mostrarDropdown"
+        class="notifications-dropdown position-absolute border rounded shadow-lg"
+        style="right: 0; top: 100%; margin-top: 0.5rem; width: 350px; max-height: 400px; overflow-y: auto; z-index: 1050; background: var(--bs-body-bg); color: var(--bs-body-color);"
+      >
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <h6 class="mb-0">Notificaciones</h6>
+          <div class="d-flex gap-2">
+            <button
+              type="button"
+              class="btn btn-sm btn-link text-decoration-none p-0"
+              (click)="recargarNotificaciones()"
+              [title]="'Recargar notificaciones'"
+              style="color: var(--bs-body-color);"
+            >
+              🔄
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-link text-decoration-none p-0"
+              (click)="cerrarDropdown()"
+              style="color: var(--bs-body-color);"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="notificaciones.length === 0" class="p-3 text-center text-muted">
+          No hay notificaciones
+        </div>
+
+        <div *ngIf="notificaciones.length > 0">
+          <div
+            *ngFor="let notif of notificaciones"
+            class="notification-item p-3 border-bottom"
+            (click)="verNotificacion(notif)"
+          >
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <p class="mb-1 fw-semibold" style="font-size: 0.9rem;">{{ getNombreCompleto(notif) }}</p>
+                <p class="mb-1 text-muted" style="font-size: 0.85rem;">Documento: {{ notif.DOCUMENTO }}</p>
+                <p class="mb-1" style="font-size: 0.85rem;">Se actualizó información del aspirante</p>
+                <small class="text-muted">{{ formatearFecha(notif.updatedAt) }}</small>
+              </div>
+              <span class="badge bg-info ms-2" style="font-size: 0.7rem;">
+                <i class="bi bi-bell"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="theme-toggle d-flex align-items-center">
       <button
         type="button"

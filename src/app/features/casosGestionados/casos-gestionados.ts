@@ -29,6 +29,22 @@ export class CasosGestionados implements OnInit {
 
   Math = Math;
 
+  // Variables para modal de actualización de exámenes
+  casoEnEdicion: any = null;
+  motivoCambio: string = '';
+  pdfSeleccionado: File | null = null;
+  errorPdf: string = '';
+  errorMotivo: string = '';
+  actualizando: boolean = false;
+
+  // Variables para modal de actualización de biometría
+  casoEnEdicionBiometria: any = null;
+  motivoCambioBiometria: string = '';
+  pdfSeleccionadoBiometria: File | null = null;
+  errorPdfBiometria: string = '';
+  errorMotivoBiometria: string = '';
+  actualizandoBiometria: boolean = false;
+
   ngOnInit(): void {
     this.consultar(false);
   }
@@ -345,7 +361,8 @@ export class CasosGestionados implements OnInit {
       html += '</div>';
       html += '<div class="card-body text-center">';
       html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-success">Cargado</span></p>`;
-      html += '<button id="verPdfBtn" class="btn btn-primary">Ver Examenes</button>';
+      html += '<button id="verPdfBtn" class="btn btn-primary me-2">Ver Examenes</button>';
+      html += '<button id="editarPdfBtn" class="btn btn-danger text-white" title="Actualizar documento de exámenes"><i class="bi bi-pencil-square"></i> Editar</button>';
       html += '</div></div>';
     }
 
@@ -358,7 +375,8 @@ export class CasosGestionados implements OnInit {
       html += '<div class="card-body text-center">';
       html += `<p class="mb-3"><strong>Estado:</strong> <span class="badge bg-success">Cargado</span></p>`;
       html += `<p class="mb-3"><strong>Fecha de Carga:</strong> ${caso.RUTA_BIOMETRIA.fecha ? new Date(caso.RUTA_BIOMETRIA.fecha).toLocaleDateString('es-CO') : 'N/A'}</p>`;
-      html += '<button id="verBiometriaBtn" class="btn btn-success">Ver Biometría</button>';
+      html += '<button id="verBiometriaBtn" class="btn btn-success me-2">Ver Biometría</button>';
+      html += '<button id="editarBiometriaBtn" class="btn btn-danger text-white" title="Actualizar datos biométricos"><i class="bi bi-pencil-square"></i> Editar</button>';
       html += '</div></div>';
     }
 
@@ -377,12 +395,28 @@ export class CasosGestionados implements OnInit {
             const filename = this.extraerNombreArchivo(caso.PDF_URL);
             verPdfBtn.onclick = () => this.verPDF(filename);
           }
+
+          const editarPdfBtn = document.getElementById('editarPdfBtn');
+          if (editarPdfBtn) {
+            editarPdfBtn.onclick = () => {
+              Swal.close();
+              this.abrirModalEditar(caso);
+            };
+          }
         }
 
         if (caso.RUTA_BIOMETRIA) {
           const verBioBtn = document.getElementById('verBiometriaBtn');
           if (verBioBtn) {
             verBioBtn.onclick = () => this.verBiometriaPorAspirante(caso._id);
+          }
+
+          const editarBioBtn = document.getElementById('editarBiometriaBtn');
+          if (editarBioBtn) {
+            editarBioBtn.onclick = () => {
+              Swal.close();
+              this.abrirModalEditarBiometria(caso);
+            };
           }
         }
       }
@@ -603,5 +637,403 @@ export class CasosGestionados implements OnInit {
     }
     if (typeof value === 'number' && Number.isFinite(value)) return String(value);
     return null;
+  }
+
+  /**
+   * Abre el modal de edición de exámenes para el caso dado
+   */
+  abrirModalEditar(caso: HojaVida): void {
+    if (!caso?._id) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo identificar el caso seleccionado',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    this.casoEnEdicion = caso;
+    this.motivoCambio = '';
+    this.pdfSeleccionado = null;
+    this.errorPdf = '';
+    this.errorMotivo = '';
+    this.actualizando = false;
+
+    // Limpiar el input file
+    setTimeout(() => {
+      const inputFile = document.querySelector('#modalActualizarExamenes input[type="file"]') as HTMLInputElement;
+      if (inputFile) {
+        inputFile.value = '';
+      }
+    }, 0);
+
+    const modalEl = document.getElementById('modalActualizarExamenes');
+    if (modalEl) {
+      modalEl.classList.add('show');
+      modalEl.style.display = 'block';
+      modalEl.setAttribute('aria-modal', 'true');
+      modalEl.removeAttribute('aria-hidden');
+
+      // Agregar backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      backdrop.id = 'modal-backdrop-examenes';
+      document.body.appendChild(backdrop);
+      document.body.classList.add('modal-open');
+    }
+  }
+
+  /**
+   * Cierra el modal limpiando el estado
+   */
+  cerrarModalEditar(): void {
+    const modalEl = document.getElementById('modalActualizarExamenes');
+    if (modalEl) {
+      modalEl.classList.remove('show');
+      modalEl.style.display = 'none';
+      modalEl.setAttribute('aria-hidden', 'true');
+      modalEl.removeAttribute('aria-modal');
+
+      // Remover backdrop
+      const backdrop = document.getElementById('modal-backdrop-examenes');
+      if (backdrop) {
+        backdrop.remove();
+      }
+      document.body.classList.remove('modal-open');
+    }
+
+    this.casoEnEdicion = null;
+    this.motivoCambio = '';
+    this.pdfSeleccionado = null;
+    this.errorPdf = '';
+    this.errorMotivo = '';
+
+    // Limpiar el input file
+    const inputFile = document.querySelector('#modalActualizarExamenes input[type="file"]') as HTMLInputElement;
+    if (inputFile) {
+      inputFile.value = '';
+    }
+  }
+
+  /**
+   * Valida y guarda el archivo PDF seleccionado
+   */
+  onSeleccionarPdf(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.errorPdf = '';
+    this.pdfSeleccionado = null;
+
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const maxBytes = 40 * 1024 * 1024; // 40 MB
+
+    if (file.type !== 'application/pdf') {
+      this.errorPdf = 'Solo se permiten archivos PDF';
+      return;
+    }
+
+    if (file.size > maxBytes) {
+      this.errorPdf = 'El archivo no puede superar 40 MB';
+      return;
+    }
+
+    this.pdfSeleccionado = file;
+  }
+
+  /**
+   * Valida textarea en tiempo real
+   */
+  onMotivoChange(): void {
+    if (this.motivoCambio.trim().length >= 100) {
+      this.errorMotivo = '';
+    }
+  }
+
+  /**
+   * Valida formulario y envía la actualización
+   */
+  actualizarExamenes(): void {
+    // Reset errores
+    this.errorPdf = '';
+    this.errorMotivo = '';
+
+    // Validaciones
+    let valido = true;
+
+    if (!this.pdfSeleccionado) {
+      this.errorPdf = 'Debe seleccionar un archivo PDF';
+      valido = false;
+    }
+
+    const motivoLength = this.motivoCambio.trim().length;
+    if (!this.motivoCambio || motivoLength < 100) {
+      this.errorMotivo = `El motivo debe tener al menos 100 caracteres (actual: ${motivoLength})`;
+      valido = false;
+    }
+
+    if (!valido) return;
+
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Autenticación',
+        text: 'No se pudo obtener el ID del usuario. Inicie sesión nuevamente.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    this.actualizando = true;
+
+    const formData = new FormData();
+    formData.append('id_caso', this.casoEnEdicion._id);
+    formData.append('id_usuario', userId);
+    formData.append('notas_cambio', this.motivoCambio.trim());
+    formData.append('pdf', this.pdfSeleccionado!);
+
+    this.service.actualizarExamenes(formData).subscribe({
+      next: (resp) => {
+        this.actualizando = false;
+        if (resp.error === 0) {
+          this.cerrarModalEditar();
+          Swal.fire({
+            icon: 'success',
+            title: 'Documento Actualizado',
+            text: resp.response?.mensaje || 'Los exámenes han sido actualizados exitosamente',
+            timer: 2500,
+            showConfirmButton: false
+          });
+          // Recargar datos para reflejar el cambio
+          this.consultar(false);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al Actualizar',
+            text: resp.response?.mensaje || 'No se pudo actualizar el documento',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      },
+      error: (err) => {
+        this.actualizando = false;
+        let msg = 'No se pudo conectar con el servidor.';
+        if (err.status === 401) {
+          msg = 'Sesión expirada. Por favor inicie sesión nuevamente.';
+        } else if (err.status === 413) {
+          msg = 'El archivo excede el tamaño máximo permitido (40 MB).';
+        } else if (err.error?.response?.mensaje) {
+          msg = err.error.response.mensaje;
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de Conexión',
+          text: msg,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
+  }
+
+  /**
+   * Abre el modal de edición de biometría para el caso dado
+   */
+  abrirModalEditarBiometria(caso: HojaVida): void {
+    if (!caso?._id) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo identificar el caso seleccionado',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    this.casoEnEdicionBiometria = caso;
+    this.motivoCambioBiometria = '';
+    this.pdfSeleccionadoBiometria = null;
+    this.errorPdfBiometria = '';
+    this.errorMotivoBiometria = '';
+    this.actualizandoBiometria = false;
+
+    // Limpiar el input file
+    setTimeout(() => {
+      const inputFile = document.querySelector('#modalActualizarBiometria input[type="file"]') as HTMLInputElement;
+      if (inputFile) {
+        inputFile.value = '';
+      }
+    }, 0);
+
+    const modalEl = document.getElementById('modalActualizarBiometria');
+    if (modalEl) {
+      modalEl.classList.add('show');
+      modalEl.style.display = 'block';
+      modalEl.setAttribute('aria-modal', 'true');
+      modalEl.removeAttribute('aria-hidden');
+
+      // Agregar backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      backdrop.id = 'modal-backdrop-biometria';
+      document.body.appendChild(backdrop);
+      document.body.classList.add('modal-open');
+    }
+  }
+
+  /**
+   * Cierra el modal de biometría limpiando el estado
+   */
+  cerrarModalEditarBiometria(): void {
+    const modalEl = document.getElementById('modalActualizarBiometria');
+    if (modalEl) {
+      modalEl.classList.remove('show');
+      modalEl.style.display = 'none';
+      modalEl.setAttribute('aria-hidden', 'true');
+      modalEl.removeAttribute('aria-modal');
+
+      // Remover backdrop
+      const backdrop = document.getElementById('modal-backdrop-biometria');
+      if (backdrop) {
+        backdrop.remove();
+      }
+      document.body.classList.remove('modal-open');
+    }
+
+    this.casoEnEdicionBiometria = null;
+    this.motivoCambioBiometria = '';
+    this.pdfSeleccionadoBiometria = null;
+    this.errorPdfBiometria = '';
+    this.errorMotivoBiometria = '';
+
+    // Limpiar el input file
+    const inputFile = document.querySelector('#modalActualizarBiometria input[type="file"]') as HTMLInputElement;
+    if (inputFile) {
+      inputFile.value = '';
+    }
+  }
+
+  /**
+   * Valida y guarda el archivo PDF de biometría seleccionado
+   */
+  onSeleccionarPdfBiometria(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.errorPdfBiometria = '';
+    this.pdfSeleccionadoBiometria = null;
+
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const maxBytes = 150 * 1024 * 1024; // 150 MB
+
+    if (file.type !== 'application/pdf') {
+      this.errorPdfBiometria = 'Solo se permiten archivos PDF';
+      return;
+    }
+
+    if (file.size > maxBytes) {
+      this.errorPdfBiometria = 'El archivo no puede superar 150 MB';
+      return;
+    }
+
+    this.pdfSeleccionadoBiometria = file;
+  }
+
+  /**
+   * Valida textarea de motivo de biometría en tiempo real
+   */
+  onMotivoChangeBiometria(): void {
+    if (this.motivoCambioBiometria.trim().length >= 100) {
+      this.errorMotivoBiometria = '';
+    }
+  }
+
+  /**
+   * Valida formulario y envía la actualización de biometría
+   */
+  actualizarBiometria(): void {
+    // Reset errores
+    this.errorPdfBiometria = '';
+    this.errorMotivoBiometria = '';
+
+    // Validaciones
+    let valido = true;
+
+    if (!this.pdfSeleccionadoBiometria) {
+      this.errorPdfBiometria = 'Debe seleccionar un archivo PDF';
+      valido = false;
+    }
+
+    const motivoLength = this.motivoCambioBiometria.trim().length;
+    if (!this.motivoCambioBiometria || motivoLength < 100) {
+      this.errorMotivoBiometria = `El motivo debe tener al menos 100 caracteres (actual: ${motivoLength})`;
+      valido = false;
+    }
+
+    if (!valido) return;
+
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Autenticación',
+        text: 'No se pudo obtener el ID del usuario. Inicie sesión nuevamente.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    this.actualizandoBiometria = true;
+
+    const formData = new FormData();
+    formData.append('id_caso', this.casoEnEdicionBiometria._id);
+    formData.append('id_usuario', userId);
+    formData.append('notas_cambio', this.motivoCambioBiometria.trim());
+    formData.append('pdf', this.pdfSeleccionadoBiometria!);
+
+    this.service.actualizarBiometria(formData).subscribe({
+      next: (resp) => {
+        this.actualizandoBiometria = false;
+        if (resp.error === 0) {
+          this.cerrarModalEditarBiometria();
+          Swal.fire({
+            icon: 'success',
+            title: 'Biometría Actualizada',
+            text: resp.response?.mensaje || 'Los datos biométricos han sido actualizados exitosamente',
+            timer: 2500,
+            showConfirmButton: false
+          });
+          // Recargar datos para reflejar el cambio
+          this.consultar(false);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al Actualizar',
+            text: resp.response?.mensaje || 'No se pudo actualizar la biometría',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      },
+      error: (err) => {
+        this.actualizandoBiometria = false;
+        let msg = 'No se pudo conectar con el servidor.';
+        if (err.status === 401) {
+          msg = 'Sesión expirada. Por favor inicie sesión nuevamente.';
+        } else if (err.status === 413) {
+          msg = 'El archivo excede el tamaño máximo permitido (150 MB).';
+        } else if (err.error?.response?.mensaje) {
+          msg = err.error.response.mensaje;
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de Conexión',
+          text: msg,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
   }
 }

@@ -174,3 +174,30 @@
 .theme-dark .menu-scrollable {
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
 }
+
+/* Submenu section titles */
+.submenu-section-title {
+  padding: 0.5rem 1rem 0.3rem 2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.submenu-section-title:first-child {
+  margin-top: 0.25rem;
+}
+
+.theme-dark .submenu-section-title {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Collapsed state - hide section titles */
+:host-context(.platform--collapsed) .submenu-section-title {
+  display: none !important;
+}

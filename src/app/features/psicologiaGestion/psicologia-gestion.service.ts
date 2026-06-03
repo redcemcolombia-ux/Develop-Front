@@ -1,7 +1,162 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { API_BASE_URL } from '../../core/api.config';
+
+export interface LiberacionCasoRequest {
+  caso_id: string;
+  informe_liberacion: string;
+  usuario_id: string;
+}
+
+export interface LiberacionCasoResponse {
+  error: number;
+  response?: {
+    mensaje: string;
+    data?: {
+      caso_id: string;
+      fecha_liberacion: string;
+    };
+  };
+}
+
+export interface Persona {
+  _id: string;
+  Pe_Nombre: string;
+  Pe_Apellido: string;
+  Pe_Seg_Apellido?: string;
+  Pe_Tipo_Documento: string;
+  Pe_Documento: string;
+  Pe_Telefons_Fijo: string;
+  Pe_Cel: string;
+  Pe_Correo: string;
+  Pe_Direccion: string;
+  Pe_Permiso: string;
+  Pe_Departamento: string;
+  Pe_Ciudad: string;
+}
+
+export interface Usuario {
+  _id: string;
+  Cr_Nombre_Usuario: string;
+  Cr_Perfil: string;
+  Cr_Empresa: string;
+  Cr_Estado: string;
+  Cr_Pe_Codigo: Persona;
+  Cr_Ips?: any;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ListarUsuariosResponse {
+  error: number;
+  response: {
+    usuarios: Usuario[];
+    total: number;
+    mensaje?: string;
+  };
+}
+
+export interface AsignarCasoRequest {
+  caso_id: string;
+  psicologo_id: string;
+  supervisor_id: string;
+}
+
+export interface AsignarCasoResponse {
+  error: number;
+  response: {
+    mensaje: string;
+    data?: {
+      caso_id: string;
+      psicologo_asignado: string;
+      fecha_asignacion: string;
+    };
+  };
+}
+
+export interface ReasignarCasoRequest {
+  caso_id: string;
+  psicologo_id: string;
+  supervisor_id: string;
+}
+
+export interface ReasignarCasoResponse {
+  error: number;
+  response: {
+    mensaje: string;
+    data?: {
+      caso_id: string;
+      psicologo_anterior: string;
+      psicologo_nuevo: string;
+      fecha_reasignacion: string;
+    };
+  };
+}
+
+export interface CasoConUsuarioSic {
+  _id: string;
+  DOCUMENTO: string;
+  NOMBRE: string;
+  PRIMER_APELLIDO: string;
+  SEGUNDO_APELLIDO?: string;
+  USUARIO_SIC: string;
+  TELEFONO?: string;
+  CELULAR?: string;
+  CORREO?: string;
+  CIUDAD?: string;
+  DEPARTAMENTO?: string;
+  DIRECCION?: string;
+  ESTADO?: string;
+  EDAD?: number;
+  GENERO?: string;
+  FECH_NACIMIENTO?: string;
+  DEPARTAMENTO_NACIMIENTO?: string;
+  CIUDAD_NACIMIENTO?: string;
+  NUMERO_CURSO?: string;
+  TIPO_CURSO?: string;
+  PKEYHOJAVIDA?: string;
+  PKEYASPIRANT?: string;
+  CODIGO_INSCRIPCION?: string;
+  CODIPROGACAD?: string;
+  ANNOPERIACAD?: string;
+  NUMEPERIACAD?: string;
+  COLEGIO?: string;
+  FECHA_INSCRIPCION?: string;
+  REGIONAL?: string;
+  GRUP_MINO?: string;
+  ESTRATO?: string;
+  TIPO_MEDIO?: string;
+  COMPLEMENTARIA_1?: string;
+  COMPLEMENTARIA_2?: string;
+  PDF_URL?: string;
+  RUTA_BIOMETRIA?: any;
+  RUTA_NOTIFICACION_RECIBIDA?: string;
+  RUTA_PSICOLOGIA?: any;
+  IPS_ID?: {
+    _id: string;
+    NOMBRE_IPS: string;
+  };
+  USUARIO_ID?: {
+    _id: string;
+    Cr_Nombre_Usuario: string;
+    Cr_Pe_Codigo?: {
+      Pe_Documento: string;
+      Pe_Nombre?: string;
+      Pe_Apellido?: string;
+    };
+  };
+}
+
+export interface CasosConUsuarioSicResponse {
+  error: number;
+  response: {
+    mensaje: string;
+    data: CasoConUsuarioSic[];
+    total: number;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -254,5 +409,57 @@ export class PsicologiaGestionService {
     return this.http.get(`${this.baseApi}/pdf/recibida/${cleanFilename}`, {
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Libera un caso asignado a Psicología
+   * @param request Datos de liberación (caso_id, informe, usuario_id)
+   * @returns Observable con respuesta del backend
+   */
+  liberarCaso(request: LiberacionCasoRequest): Observable<LiberacionCasoResponse> {
+    const token = localStorage.getItem('token') ?? '';
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    });
+
+    const url = `${this.baseApi}/psicologia-gestion/liberar-caso`;
+
+    return this.http
+      .post<LiberacionCasoResponse>(url, request, { headers })
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => error)));
+  }
+
+  /**
+   * Obtiene lista de usuarios del sistema
+   */
+  listarUsuarios(): Observable<ListarUsuariosResponse> {
+    const token = localStorage.getItem('token') ?? '';
+    const url = `${this.baseApi}/users/consultar`;
+
+    return this.http.get<ListarUsuariosResponse>(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }).pipe(
+      catchError((error: HttpErrorResponse) => throwError(() => error))
+    );
+  }
+
+  /**
+   * Asigna un caso a un psicólogo
+   */
+  asignarCaso(request: AsignarCasoRequest): Observable<AsignarCasoResponse> {
+    const token = localStorage.getItem('token') ?? '';
+    const url = `${this.baseApi}/psicologia-gestion/asignar-caso`;
+
+    return this.http.post<AsignarCasoResponse>(url, request, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    }).pipe(
+      catchError((error: HttpErrorResponse) => throwError(() => error))
+    );
   }
 }

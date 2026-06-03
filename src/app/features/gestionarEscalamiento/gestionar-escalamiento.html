@@ -1,0 +1,210 @@
+<div class="row g-3" *ngIf="caso">
+  <!-- Información del Caso -->
+  <div class="col-12">
+    <div class="card platform-card">
+      <div class="card-header platform-card__header platform-card__header--info">
+        <h5 class="mb-0">
+          <i class="bi bi-info-circle me-2"></i>
+          Información del Caso - {{ caso.codigo }}
+          <button type="button" class="btn btn-sm btn-primary float-end" (click)="volver()">
+            <i class="bi bi-arrow-left"></i> Volver
+          </button>
+        </h5>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <strong class="text-muted">Código:</strong><br>
+            <span class="fs-5">{{ caso.codigo }}</span>
+          </div>
+          <div class="col-md-4">
+            <strong class="text-muted">Usuario:</strong><br>
+            <span class="fs-5">{{ caso.usuario_nombre || 'N/A' }}</span>
+          </div>
+          <div class="col-md-4">
+            <strong class="text-muted">Prioridad:</strong><br>
+            <span class="badge" [ngClass]="getPrioridadBadgeClass(caso.prioridad)" style="font-size: 1em;">
+              {{ caso.prioridad }}
+            </span>
+          </div>
+          <div class="col-md-4">
+            <strong class="text-muted">Estado:</strong><br>
+            <span class="badge" [ngClass]="getEstadoBadgeClass(caso.estado)" style="font-size: 1em;">
+              {{ caso.estado }}
+            </span>
+          </div>
+          <div class="col-md-4">
+            <strong class="text-muted">Fecha Escalamiento:</strong><br>
+            <span class="fs-6">{{ formatearFecha(caso.fecha_escalamiento) }}</span>
+          </div>
+          <div class="col-md-4">
+            <strong class="text-muted">Gestor:</strong><br>
+            <span class="fs-6">{{ caso.gestor_asignado || 'Sin asignar' }}</span>
+          </div>
+          <div class="col-12">
+            <strong class="text-muted">Descripción del Problema:</strong>
+            <div class="card mt-2">
+              <div class="card-body">
+                <p class="mb-0" style="white-space: pre-wrap;">{{ caso.descripcion }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12" *ngIf="caso.evidencia_url">
+            <strong class="text-muted">Evidencia:</strong>
+            <div class="card mt-2">
+              <div class="card-body text-center p-3">
+                <!-- Spinner mientras carga -->
+                <div *ngIf="evidenciaCargando">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando imagen...</span>
+                  </div>
+                  <p class="text-muted mt-2 mb-0">Cargando evidencia...</p>
+                </div>
+
+                <!-- Imagen cargada -->
+                <img
+                  *ngIf="!evidenciaCargando && evidenciaUrl && !evidenciaError"
+                  [src]="evidenciaUrl"
+                  alt="Evidencia del caso"
+                  class="img-fluid"
+                  style="max-height: 500px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+                <!-- Error al cargar -->
+                <div *ngIf="!evidenciaCargando && evidenciaError" class="alert alert-danger mb-0">
+                  <h6>❌ Error al cargar la imagen</h6>
+                  <p class="mb-0">{{ evidenciaError }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de Gestión -->
+  <div class="col-12">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="card platform-card">
+        <div class="card-header platform-card__header platform-card__header--danger">
+          <h5 class="mb-0">Gestionar Caso</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <!-- Respuesta -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                Notas de Resolución <span class="text-muted">(Opcional)</span>
+              </label>
+              <textarea
+                class="form-control"
+                formControlName="respuesta"
+                rows="8"
+                placeholder="Describa la solución o notas sobre la resolución del caso... (Opcional, mínimo 20 caracteres si se completa)"
+                [class.is-invalid]="submitted && f['respuesta'].invalid"
+                spellcheck="true"
+                lang="es-419"
+                maxlength="5000"
+              ></textarea>
+              <div class="d-flex justify-content-between mt-1">
+                <div class="invalid-feedback d-block" *ngIf="submitted && f['respuesta'].errors">
+                  <span *ngIf="f['respuesta'].errors['minlength']">
+                    Las notas deben tener al menos 20 caracteres. (Actual: {{ f['respuesta'].value?.length || 0 }})
+                  </span>
+                </div>
+                <small class="text-muted">
+                  {{ f['respuesta'].value?.length || 0 }} caracteres (min 20 si se completa, máx 5000)
+                </small>
+              </div>
+            </div>
+
+            <!-- Imagen de Solución -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Imagen de Solución <span class="text-muted">(Opcional)</span>
+              </label>
+              <input
+                type="file"
+                class="form-control"
+                accept="image/jpeg,image/jpg,image/png"
+                (change)="onFileSelected($event)"
+                [class.is-invalid]="errorImagen"
+                #fileInput
+              />
+              <div class="invalid-feedback d-block" *ngIf="errorImagen">
+                {{ errorImagen }}
+              </div>
+              <small class="text-muted d-block mt-1">
+                Formatos permitidos: JPG, PNG. Tamaño máximo: 5 MB
+              </small>
+            </div>
+
+            <!-- Estado Final -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Estado <span class="text-danger">*</span>
+              </label>
+              <select
+                class="form-select"
+                formControlName="estadoFinal"
+                [class.is-invalid]="submitted && f['estadoFinal'].invalid"
+              >
+                <option value="">Seleccione un estado</option>
+                <option value="PENDIENTE">⏳ Pendiente</option>
+                <option value="EN_PROCESO">🔄 En Proceso</option>
+                <option value="RESUELTO">✅ Resuelto</option>
+                <option value="CERRADO">🔒 Cerrado</option>
+              </select>
+              <div class="invalid-feedback" *ngIf="submitted && f['estadoFinal'].invalid">
+                Debe seleccionar el estado del caso.
+              </div>
+            </div>
+
+            <!-- Preview de la imagen -->
+            <div class="col-12" *ngIf="imagenPreview">
+              <div class="card">
+                <div class="card-header bg-light">
+                  <small class="fw-semibold">Vista previa de solución:</small>
+                </div>
+                <div class="card-body text-center p-2">
+                  <img [src]="imagenPreview" alt="Preview" class="img-fluid" style="max-height: 300px; border-radius: 8px;">
+                  <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="eliminarImagen()">
+                    <i class="bi bi-trash"></i> Eliminar imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="volver()"
+                [disabled]="isLoading"
+              >
+                <i class="bi bi-x-circle"></i> Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-danger"
+                [disabled]="isLoading"
+              >
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i class="bi bi-check-circle" *ngIf="!isLoading"></i>
+                {{ isLoading ? 'Guardando...' : 'Guardar Gestión' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="!caso" class="text-center py-5">
+  <h5 class="text-muted">No hay caso seleccionado</h5>
+  <button type="button" class="btn btn-primary mt-3" (click)="volver()">
+    <i class="bi bi-arrow-left"></i> Volver al Gestor
+  </button>
+</div>

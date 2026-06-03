@@ -163,7 +163,7 @@
       <a
         class="menu-item d-grid"
         title="Psicología Gestión"
-        [class.active]="activePanel === 'consultarHojasVidaPs' || activePanel === 'misCasosTomadosPs' || activePanel === 'formularioPs' || activePanel === 'formNotificacionPs' || activePanel === 'creacionPreguntasPs' || activePanel === 'informePs'"
+        [class.active]="activePanel === 'consultarHojasVidaPs' || activePanel === 'misCasosTomadosPs' || activePanel === 'formularioPs' || activePanel === 'formNotificacionPs' || activePanel === 'creacionPreguntasPs' || activePanel === 'informePs' || activePanel === 'informeGeneralPs' || activePanel === 'reasignacionCasosPs'"
         [class.expanded]="psicologiaGestionMenuExpanded"
         (click)="togglePsicologiaGestionMenu()"
       >
@@ -173,6 +173,9 @@
       </a>
 
       <div class="submenu" *ngIf="psicologiaGestionMenuExpanded">
+        <!-- SECCIÓN: PSICÓLOGO -->
+        <div class="submenu-section-title">👤 Psicólogo</div>
+
         <a
           class="submenu-item"
           title="Consultar Hojas de Vida"
@@ -236,6 +239,30 @@
         >
           <span class="icon">📊</span>
           <span class="text">Informe</span>
+        </a>
+
+        <!-- SECCIÓN: SUPERVISOR (solo para Sup-Psicologia / Administrador) -->
+        <div *ngIf="canViewInformeGeneral" class="submenu-section-title">⭐ Supervisor</div>
+
+        <a
+          *ngIf="canViewInformeGeneral"
+          class="submenu-item"
+          title="Informe General"
+          [class.active]="activePanel === 'informeGeneralPs'"
+          (click)="openInformeGeneralPs()"
+        >
+          <span class="icon">📈</span>
+          <span class="text">Informe General</span>
+        </a>
+        <a
+          *ngIf="canViewInformeGeneral"
+          class="submenu-item"
+          title="Reasignación de Casos"
+          [class.active]="activePanel === 'reasignacionCasosPs'"
+          (click)="openReasignacionCasosPs()"
+        >
+          <span class="icon">🔄</span>
+          <span class="text">Reasignación de Casos</span>
         </a>
         <!-- <a
           class="submenu-item"
@@ -347,7 +374,54 @@
       </div>
     </div>
 
-    <div class="menu-section text-uppercase" *ngIf="canViewAplicaciones">Applications</div>
+    <!-- Mesa de Ayuda menu with submenu -->
+    <div class="menu-group" *ngIf="canViewMesaAyuda">
+      <a
+        class="menu-item d-grid"
+        title="Mesa de Ayuda"
+        [class.active]="activePanel === 'escalarCaso' || activePanel === 'seguimientosCasos' || activePanel === 'gestorEscalamientos'"
+        [class.expanded]="mesaAyudaMenuExpanded"
+        (click)="toggleMesaAyudaMenu()"
+      >
+        <span class="icon">🆘</span>
+        <span class="text" style="font-size: 1rem; text-transform: uppercase">Mesa de Ayuda</span>
+        <span class="submenu-arrow">{{ mesaAyudaMenuExpanded ? '▾' : '▸' }}</span>
+      </a>
+
+      <div class="submenu" *ngIf="mesaAyudaMenuExpanded">
+        <a
+          class="submenu-item"
+          title="Escalar"
+          [class.active]="activePanel === 'escalarCaso'"
+          (click)="openEscalarCaso()"
+        >
+          <span class="icon">⬆️</span>
+          <span class="text">Escalar</span>
+        </a>
+        <a
+          class="submenu-item"
+          title="Seguimientos"
+          [class.active]="activePanel === 'seguimientosCasos'"
+          (click)="openSeguimientosCasos()"
+        >
+          <span class="icon">📊</span>
+          <span class="text">Seguimientos</span>
+        </a>
+        <a
+          *ngIf="canViewGestorEscalamientos"
+          class="submenu-item"
+          title="Gestor Escalamientos"
+          [class.active]="activePanel === 'gestorEscalamientos'"
+          (click)="openGestorEscalamientos()"
+        >
+          <span class="icon">⚙️</span>
+          <span class="text">Gestor Escalamientos</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Applications module - oculto para todos los usuarios -->
+    <!-- <div class="menu-section text-uppercase" *ngIf="canViewAplicaciones">Applications</div>
     <a
       *ngIf="canViewAplicaciones"
       class="menu-item d-grid"
@@ -358,6 +432,6 @@
     >
       <span class="icon">📦</span>
       <span class="text">Aplicaciones</span>
-    </a>
+    </a> -->
   </nav>
 </aside>

@@ -20,7 +20,17 @@ export class RegistroUsuarios implements OnInit {
   cargandoIps = false;
 
   tiposDocumento = ['CC', 'CE', 'TI', 'PA'];
-  perfiles = ['Administrador', 'Supervisor', 'Usuario', 'Cliente', 'Cliente Gestor', 'Cliente Admin', 'Cliente Informes', 'Psicólogo-Supervisor', 'Psicólogo'];
+  perfiles = [
+    { label: 'Administrador', value: 'administrador' },
+    { label: 'Supervisor', value: 'supervisor' },
+    { label: 'Usuario', value: 'usuario' },
+    { label: 'Cliente', value: 'cliente' },
+    { label: 'Cliente Gestor', value: 'cliente gestor' },
+    { label: 'Cliente Admin', value: 'cliente admin' },
+    { label: 'Cliente Informes', value: 'cliente informes' },
+    { label: 'Supervisor Psicología', value: 'sup-psicologia' },
+    { label: 'Psicólogo', value: 'psicologo' },
+  ];
   ips: any[] = [];
 
   readonly form = this.fb.group({

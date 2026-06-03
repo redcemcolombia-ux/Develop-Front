@@ -903,4 +903,159 @@ export class MisCasosGestionadosPs implements OnInit {
     const found = candidates.find((v) => v !== undefined && v !== null && String(v).trim() !== '');
     return found ? String(found) : null;
   }
+
+  /**
+   * Libera un caso asignado a Psicología
+   * Muestra modal de confirmación con textarea para informe
+   */
+  liberarCaso(caso: any): void {
+    const casoId = this.getCasoId(caso);
+
+    if (!casoId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se puede liberar el caso. ID no válido.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    const nombre = `${caso?.NOMBRE ?? ''} ${caso?.PRIMER_APELLIDO ?? ''} ${caso?.SEGUNDO_APELLIDO ?? ''}`.trim();
+
+    Swal.fire({
+      title: 'Liberar Caso',
+      html: `
+        <div class="text-start">
+          <p class="mb-2">
+            <strong>Aspirante:</strong> ${nombre}
+          </p>
+          <p class="mb-2">
+            <strong>Documento:</strong> ${caso.DOCUMENTO || 'N/A'}
+          </p>
+          <hr>
+          <label for="informe-liberacion" class="form-label">
+            <strong>Motivo de liberación:</strong> <span class="text-danger">*</span>
+          </label>
+          <textarea
+            id="informe-liberacion"
+            class="form-control"
+            rows="5"
+            placeholder="Describa el motivo por el cual libera este caso (mínimo 10 caracteres)..."
+            maxlength="1000"
+          ></textarea>
+          <small class="text-muted d-block mt-1">Máximo 1000 caracteres</small>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar Liberación',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+      focusConfirm: false,
+      preConfirm: () => {
+        const textarea = document.getElementById('informe-liberacion') as HTMLTextAreaElement;
+        const informe = textarea?.value?.trim() || '';
+
+        if (!informe) {
+          Swal.showValidationMessage('El informe de liberación es obligatorio');
+          return false;
+        }
+
+        if (informe.length < 10) {
+          Swal.showValidationMessage('El informe debe tener al menos 10 caracteres');
+          return false;
+        }
+
+        if (informe.length > 1000) {
+          Swal.showValidationMessage('El informe no puede exceder 1000 caracteres');
+          return false;
+        }
+
+        return informe;
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const informeLiberacion = result.value as string;
+        this.confirmarLiberacion(casoId, informeLiberacion);
+      }
+    });
+  }
+
+  /**
+   * Confirma la liberación del caso llamando al servicio
+   */
+  private confirmarLiberacion(casoId: string, informeLiberacion: string): void {
+    const usuarioId = this.authService.getUserId();
+
+    if (!usuarioId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Autenticación',
+        text: 'No se pudo obtener el ID del usuario. Por favor, inicie sesión nuevamente.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Liberando caso...',
+      html: 'Por favor espere',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    const request = {
+      caso_id: casoId,
+      informe_liberacion: informeLiberacion,
+      usuario_id: usuarioId
+    };
+
+    this.service.liberarCaso(request).subscribe({
+      next: (resp) => {
+        if (resp.error === 0) {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Caso Liberado!',
+            text: resp.response?.mensaje || 'El caso ha sido liberado exitosamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          this.cargarDatos();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al Liberar',
+            text: resp.response?.mensaje || 'No se pudo liberar el caso',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      },
+      error: (error) => {
+        let errorMessage = 'No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.';
+
+        if (error.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicie sesión nuevamente.';
+        } else if (error.status === 403) {
+          errorMessage = 'No tiene permisos para liberar este caso.';
+        } else if (error.status === 404) {
+          errorMessage = 'El caso no fue encontrado.';
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de Conexión',
+          text: errorMessage,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
+  }
 }
